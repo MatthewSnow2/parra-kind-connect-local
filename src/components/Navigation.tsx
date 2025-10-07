@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import parraLogo from "@/assets/parra-logo.png";
 
 const Navigation = () => {
   return (
@@ -8,8 +8,12 @@ const Navigation = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
-            <Heart className="h-8 w-8 text-primary group-hover:text-secondary transition-colors" />
-            <span className="text-2xl font-heading font-bold text-foreground">Para Connect</span>
+            <img 
+              src={parraLogo} 
+              alt="Parra Care" 
+              className="h-12 w-12 transition-transform group-hover:scale-105"
+            />
+            <span className="text-2xl font-heading font-bold text-foreground">Parra Care</span>
           </Link>
           
           <div className="hidden md:flex items-center gap-8">
