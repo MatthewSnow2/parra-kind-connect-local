@@ -13,11 +13,11 @@ const Hero = () => {
               Stay Connected. Stay Independent.
             </div>
             
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-foreground leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-bold leading-tight" style={{ color: '#2F4733' }}>
               Caring made simple — no devices, no downloads, just connection.
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+            <p className="text-xl md:text-2xl leading-relaxed" style={{ color: 'rgba(47, 71, 51, 0.7)' }}>
               Para Connect helps families support independent seniors and adults with disabilities through conversational AI check-ins, fall alerts, and wellness updates — all through familiar tools like WhatsApp and voice assistants.
             </p>
             

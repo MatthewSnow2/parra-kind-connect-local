@@ -40,7 +40,11 @@ const Testimonials = () => {
             <Card 
               key={index}
               className="p-8 hover:shadow-lg transition-all duration-300 relative animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                backgroundColor: 'white',
+                boxShadow: '0 0 0 2px hsl(108, 52%, 83%)'
+              }}
             >
               <Quote className="h-8 w-8 text-primary/20 mb-4" />
               <p className="text-lg text-foreground mb-6 leading-relaxed font-medium">

@@ -39,16 +39,20 @@ const ValueProps = () => {
           {values.map((value, index) => (
             <Card 
               key={index} 
-              className="p-8 hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20 animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="p-8 hover:shadow-lg transition-all duration-300 border-2 animate-fade-in"
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                backgroundColor: 'hsl(108, 52%, 83%)',
+                borderColor: 'hsl(130, 20%, 24%)'
+              }}
             >
-              <div className={`w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6`}>
-                <value.icon className={`h-8 w-8 ${value.color}`} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ border: '2px solid hsl(130, 20%, 24%)' }}>
+                <value.icon className="h-8 w-8" style={{ color: 'hsl(130, 20%, 24%)' }} />
               </div>
-              <h3 className="text-2xl font-heading font-bold mb-4 text-foreground">
+              <h3 className="text-2xl font-heading font-bold mb-4" style={{ color: 'hsl(130, 20%, 24%)' }}>
                 {value.title}
               </h3>
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg leading-relaxed" style={{ color: 'rgba(47, 71, 51, 0.8)' }}>
                 {value.description}
               </p>
             </Card>
