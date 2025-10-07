@@ -1,10 +1,12 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import ChatInterface from "@/components/ChatInterface";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { AlertCircle, CheckCircle2, AlertTriangle, MessageSquare, Bell, FileDown, UserPlus } from "lucide-react";
 
@@ -205,47 +207,97 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Weekly Mood & Activity Trends
                 </h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={moodData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(47, 71, 51, 0.1)" />
-                    <XAxis dataKey="day" stroke="#2F4733" />
-                    <YAxis stroke="#2F4733" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white',
-                        border: '2px solid #C9EBC0',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="mood" 
-                      stroke="#C9EBC0" 
-                      strokeWidth={3}
-                      name="Mood Score"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="activity" 
-                      stroke="#FF8882" 
-                      strokeWidth={3}
-                      name="Activity Level"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                 <ResponsiveContainer width="100%" height={300}>
+                   <LineChart data={moodData}>
+                     <CartesianGrid 
+                       strokeDasharray="3 3" 
+                       stroke="rgba(47, 71, 51, 0.3)"
+                       strokeWidth={1}
+                     />
+                     <XAxis 
+                       dataKey="day" 
+                       stroke="#2F4733"
+                       style={{ fontSize: '14px' }}
+                     />
+                     <YAxis 
+                       stroke="#2F4733"
+                       style={{ fontSize: '14px' }}
+                     />
+                     <Tooltip 
+                       contentStyle={{ 
+                         backgroundColor: 'white',
+                         border: '2px solid #C9EBC0',
+                         borderRadius: '8px',
+                         fontSize: '16px'
+                       }}
+                     />
+                     <Line 
+                       type="monotone" 
+                       dataKey="mood" 
+                       stroke="#C9EBC0" 
+                       strokeWidth={3}
+                       name="Mood Score"
+                       dot={{ fill: '#C9EBC0', r: 5 }}
+                     />
+                     <Line 
+                       type="monotone" 
+                       dataKey="activity" 
+                       stroke="#FF8882" 
+                       strokeWidth={3}
+                       name="Activity Level"
+                       dot={{ fill: '#FF8882', r: 5 }}
+                     />
+                   </LineChart>
+                 </ResponsiveContainer>
+                 
+                 {/* Progress Indicators */}
+                 <div className="mt-6 space-y-4">
+                   <div>
+                     <div className="flex justify-between mb-2">
+                       <span className="text-base font-medium" style={{ color: '#2F4733' }}>
+                         Overall Wellness
+                       </span>
+                       <span className="text-base" style={{ color: '#2F4733' }}>85%</span>
+                     </div>
+                     <Progress 
+                       value={85} 
+                       className="h-3"
+                       style={{
+                         background: 'linear-gradient(to right, hsl(108, 52%, 83%), hsl(130, 20%, 50%))'
+                       }}
+                     />
+                   </div>
+                   <div>
+                     <div className="flex justify-between mb-2">
+                       <span className="text-base font-medium" style={{ color: '#2F4733' }}>
+                         Social Engagement
+                       </span>
+                       <span className="text-base" style={{ color: '#2F4733' }}>62%</span>
+                     </div>
+                     <Progress 
+                       value={62} 
+                       className="h-3"
+                       style={{
+                         background: 'linear-gradient(to right, hsl(3, 100%, 76%), hsl(2, 79%, 66%))'
+                       }}
+                     />
+                   </div>
+                 </div>
               </Card>
             </div>
 
-            {/* Right Panel: Caregiver Notes & Quick Actions */}
+            {/* Right Panel: Chat & Quick Actions */}
             <div className="space-y-6">
+              <ChatInterface />
+
               <Card className="p-6" style={{ backgroundColor: 'white' }}>
                 <h2 className="text-xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Caregiver Notes
                 </h2>
                 <Textarea 
                   placeholder="Add reminders (e.g., 'Doctor visit Tue')..."
-                  className="mb-4"
-                  style={{ borderColor: '#C9EBC0' }}
+                  className="mb-4 text-lg"
+                  style={{ borderColor: '#C9EBC0', minHeight: '100px' }}
                 />
                 <Button className="w-full">
                   Save Note
@@ -257,20 +309,20 @@ const Dashboard = () => {
                   Quick Actions
                 </h2>
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <MessageSquare className="h-4 w-4" />
+                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                    <MessageSquare className="h-5 w-5" />
                     Request Status Report
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <Bell className="h-4 w-4" />
+                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                    <Bell className="h-5 w-5" />
                     Acknowledge Alert
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <UserPlus className="h-4 w-4" />
+                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                    <UserPlus className="h-5 w-5" />
                     Add Family Member
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <FileDown className="h-4 w-4" />
+                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                    <FileDown className="h-5 w-5" />
                     Export 7-day Summary
                   </Button>
                 </div>
