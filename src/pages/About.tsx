@@ -52,7 +52,7 @@ const About = () => {
               Our Mission
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto text-center">
-              Para Connect was born from a simple truth: caring for loved ones shouldn't require complicated technology. 
+              Parra Connect was born from a simple truth: caring for loved ones shouldn't require complicated technology. 
               We're building tools that honor independence while providing peace of mind — because everyone deserves 
               to age with dignity, connection, and the support they need.
             </p>

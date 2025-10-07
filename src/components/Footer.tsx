@@ -9,7 +9,7 @@ const Footer = () => {
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4">
               <Heart className="h-8 w-8" />
-              <span className="text-2xl font-heading font-bold">Para Connect</span>
+              <span className="text-2xl font-heading font-bold">Parra Connect</span>
             </Link>
             <p className="text-secondary-foreground/80">
               Caring made simple through conversational AI
@@ -30,8 +30,8 @@ const Footer = () => {
             <h3 className="font-heading font-bold text-lg mb-4">Contact</h3>
             <ul className="space-y-2">
               <li>
-                <a href="mailto:hello@paraconnect.ai" className="hover:text-primary transition-colors">
-                  hello@paraconnect.ai
+                <a href="mailto:hello@parraconnect.ai" className="hover:text-primary transition-colors">
+                  hello@parraconnect.ai
                 </a>
               </li>
               <li className="text-secondary-foreground/80">Support available 24/7</li>
@@ -52,7 +52,7 @@ const Footer = () => {
             Built with ❤️ at the CareConnect Hackathon 2025
           </p>
           <p className="text-sm text-secondary-foreground/60 mt-2">
-            © 2025 Para Connect. All rights reserved.
+            © 2025 Parra Connect. All rights reserved.
           </p>
         </div>
       </div>

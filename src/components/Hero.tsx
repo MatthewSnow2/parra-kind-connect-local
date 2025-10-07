@@ -19,7 +19,7 @@ const Hero = () => {
             </h1>
             
             <p className="text-xl md:text-2xl leading-relaxed" style={{ color: 'rgba(47, 71, 51, 0.7)' }}>
-              Para Connect helps families support independent seniors and adults with disabilities through conversational AI check-ins, fall alerts, and wellness updates — all through familiar tools like WhatsApp and voice assistants.
+              Parra Connect helps families support independent seniors and adults with disabilities through conversational AI check-ins, fall alerts, and wellness updates — all through familiar tools like WhatsApp and voice assistants.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
@@ -30,7 +30,7 @@ const Hero = () => {
               </BetaSignupDialog>
               <Button size="lg" variant="outline" className="text-lg px-8 py-6 group">
                 <MessageCircle className="mr-2 h-5 w-5 group-hover:text-primary transition-colors" />
-                Chat with Para on WhatsApp
+                Chat with Parra on WhatsApp
               </Button>
             </div>
           </div>
@@ -39,7 +39,7 @@ const Hero = () => {
             <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-3xl"></div>
             <img 
               src={heroImage} 
-              alt="Senior using smartphone to stay connected with Para Connect"
+              alt="Senior using smartphone to stay connected with Parra Connect"
               className="relative rounded-3xl shadow-2xl w-full"
             />
           </div>

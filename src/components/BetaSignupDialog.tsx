@@ -73,7 +73,7 @@ export const BetaSignupDialog = ({ children }: BetaSignupDialogProps) => {
         <DialogHeader>
           <DialogTitle className="text-2xl font-heading">Join the Free Beta</DialogTitle>
           <DialogDescription className="text-base">
-            Be among the first to experience Para Connect. Fill out the form below to get early access.
+            Be among the first to experience Parra Connect. Fill out the form below to get early access.
           </DialogDescription>
         </DialogHeader>
         

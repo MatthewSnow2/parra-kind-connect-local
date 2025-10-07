@@ -14,14 +14,14 @@ const FeatureHighlight = () => {
                 ✨ Advanced Fall Detection
               </div>
               <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-6">
-                Unlike traditional pendant systems, Para Connect detects falls and inactivity without wearables — even during the night.
+                Unlike traditional pendant systems, Parra Connect detects falls and inactivity without wearables — even during the night.
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 Our AI-powered system analyzes motion patterns and communication gaps to ensure your loved ones are safe, without invasive monitoring devices.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" variant="default">
-                  Compare Para vs. Others
+                  Compare Parra vs. Others
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button size="lg" variant="outline">
@@ -33,7 +33,7 @@ const FeatureHighlight = () => {
             <div className="relative bg-gradient-to-br from-primary/10 to-secondary/10 p-8 flex items-center justify-center animate-fade-in">
               <img 
                 src={dashboardImage} 
-                alt="Para Connect dashboard showing wellness tracking"
+                alt="Parra Connect dashboard showing wellness tracking"
                 className="rounded-2xl shadow-2xl w-full max-w-xl"
               />
             </div>
