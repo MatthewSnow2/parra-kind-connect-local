@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import parraLogo from "@/assets/parra-logo.png";
+import { BetaSignupDialog } from "@/components/BetaSignupDialog";
 
 const Navigation = () => {
   return (
@@ -32,9 +33,11 @@ const Navigation = () => {
             <Button variant="outline" size="lg">
               Sign In
             </Button>
-            <Button variant="default" size="lg">
-              Try Free Beta
-            </Button>
+            <BetaSignupDialog>
+              <Button variant="default" size="lg">
+                Try Free Beta
+              </Button>
+            </BetaSignupDialog>
           </div>
         </div>
       </div>

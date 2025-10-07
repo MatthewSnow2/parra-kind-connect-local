@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-illustration.jpg";
 import { MessageCircle, Sparkles } from "lucide-react";
+import { BetaSignupDialog } from "@/components/BetaSignupDialog";
 
 const Hero = () => {
   return (
@@ -22,9 +23,11 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all">
-                🌿 Try Free Beta
-              </Button>
+              <BetaSignupDialog>
+                <Button size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all">
+                  🌿 Try Free Beta
+                </Button>
+              </BetaSignupDialog>
               <Button size="lg" variant="outline" className="text-lg px-8 py-6 group">
                 <MessageCircle className="mr-2 h-5 w-5 group-hover:text-primary transition-colors" />
                 Chat with Para on WhatsApp

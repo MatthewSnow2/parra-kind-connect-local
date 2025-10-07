@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { BetaSignupDialog } from "@/components/BetaSignupDialog";
 
 const CTASection = () => {
   return (
@@ -14,10 +15,12 @@ const CTASection = () => {
             Start your free beta today and experience peace of mind through simple, conversational care.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all">
-              Join the Waitlist
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <BetaSignupDialog>
+              <Button size="lg" className="text-lg px-10 py-6 shadow-lg hover:shadow-xl transition-all">
+                Join the Waitlist
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </BetaSignupDialog>
             <Button size="lg" variant="outline" className="text-lg px-10 py-6">
               For Families & Caregivers
             </Button>
