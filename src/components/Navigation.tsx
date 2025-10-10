@@ -27,6 +27,9 @@ const Navigation = () => {
             <Link to="/dashboard" className="text-foreground hover:text-primary transition-colors font-medium">
               Dashboard
             </Link>
+            <Link to="/senior" className="text-foreground hover:text-primary transition-colors font-medium">
+              Senior View
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
