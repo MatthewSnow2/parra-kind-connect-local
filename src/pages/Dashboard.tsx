@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ChatInterface from "@/components/ChatInterface";
@@ -7,10 +8,23 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { AlertCircle, CheckCircle2, AlertTriangle, MessageSquare, Bell, FileDown, UserPlus } from "lucide-react";
 
 const Dashboard = () => {
+  const { toast } = useToast();
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [alertsCount, setAlertsCount] = useState(1);
+  const [newMember, setNewMember] = useState({
+    name: "",
+    email: "",
+    relationship: ""
+  });
+
   // Mock data for senior profiles
   const seniors = [
     {
@@ -82,6 +96,59 @@ const Dashboard = () => {
       case "concerned": return "🙁";
       default: return "😐";
     }
+  };
+
+  const handleRequestReport = () => {
+    toast({
+      title: "Status Report Requested",
+      description: "Your status report will be ready in a few moments and sent to your email.",
+    });
+  };
+
+  const handleAcknowledgeAlert = () => {
+    setAlertsCount(0);
+    toast({
+      title: "Alert Acknowledged",
+      description: "All alerts have been marked as read.",
+    });
+  };
+
+  const handleAddMember = () => {
+    if (!newMember.name || !newMember.email) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Family Member Added",
+      description: `${newMember.name} has been added to your care circle.`,
+    });
+    
+    setAddMemberOpen(false);
+    setNewMember({ name: "", email: "", relationship: "" });
+  };
+
+  const handleExportSummary = () => {
+    const csvContent = `Date,Check-in,Observation,Status\n${summaryFeed.map(item => 
+      `${item.date},"${item.checkIn}",${item.observation},${item.status}`
+    ).join('\n')}`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '7-day-summary.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Summary Exported",
+      description: "Your 7-day summary has been downloaded.",
+    });
   };
 
   return (
@@ -309,19 +376,43 @@ const Dashboard = () => {
                   Quick Actions
                 </h2>
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 text-base h-12"
+                    onClick={handleRequestReport}
+                  >
                     <MessageSquare className="h-5 w-5" />
                     Request Status Report
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 text-base h-12 relative"
+                    onClick={handleAcknowledgeAlert}
+                  >
                     <Bell className="h-5 w-5" />
                     Acknowledge Alert
+                    {alertsCount > 0 && (
+                      <Badge 
+                        className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0"
+                        style={{ backgroundColor: '#FF8882', color: '#2F4733' }}
+                      >
+                        {alertsCount}
+                      </Badge>
+                    )}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 text-base h-12"
+                    onClick={() => setAddMemberOpen(true)}
+                  >
                     <UserPlus className="h-5 w-5" />
                     Add Family Member
                   </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2 text-base h-12">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 text-base h-12"
+                    onClick={handleExportSummary}
+                  >
                     <FileDown className="h-5 w-5" />
                     Export 7-day Summary
                   </Button>
@@ -329,6 +420,56 @@ const Dashboard = () => {
               </Card>
             </div>
           </div>
+
+          {/* Add Family Member Dialog */}
+          <Dialog open={addMemberOpen} onOpenChange={setAddMemberOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Family Member</DialogTitle>
+                <DialogDescription>
+                  Add a new family member to your care circle. They will receive updates and be able to view care information.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter full name"
+                    value={newMember.name}
+                    onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter email address"
+                    value={newMember.email}
+                    onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="relationship">Relationship</Label>
+                  <Input
+                    id="relationship"
+                    placeholder="e.g., Daughter, Son, Sibling"
+                    value={newMember.relationship}
+                    onChange={(e) => setNewMember({ ...newMember, relationship: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddMemberOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddMember}>
+                  Add Member
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </main>
       <Footer />
