@@ -21,7 +21,7 @@ const About = () => {
       emoji: "👨‍💼"
     },
     {
-      name: "Saima Ahmad",
+      name: "Saima",
       role: "Clinical Operations & User Research",
       emoji: "👩‍⚕️"
     },
