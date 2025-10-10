@@ -6,21 +6,6 @@ import { Heart } from "lucide-react";
 const About = () => {
   const team = [
     {
-      name: "Saima Ahmad",
-      role: "Clinical Operations & User Research",
-      emoji: "👩‍⚕️"
-    },
-    {
-      name: "Zakaria",
-      role: "AI Engineering & Integration",
-      emoji: "👨‍💻"
-    },
-    {
-      name: "Matthew",
-      role: "Backend Systems & AI Voice Logic",
-      emoji: "👨‍💼"
-    },
-    {
       name: "Jennifer",
       role: "Branding & Accessibility Design",
       emoji: "👩‍🎨"
@@ -29,6 +14,21 @@ const About = () => {
       name: "Louisa",
       role: "UX Copy & Onboarding Flow",
       emoji: "👩‍💻"
+    },
+    {
+      name: "Matthew",
+      role: "Backend Systems & AI Voice Logic",
+      emoji: "👨‍💼"
+    },
+    {
+      name: "Saima Ahmad",
+      role: "Clinical Operations & User Research",
+      emoji: "👩‍⚕️"
+    },
+    {
+      name: "Zakaria",
+      role: "AI Engineering & Integration",
+      emoji: "👨‍💻"
     }
   ];
 
