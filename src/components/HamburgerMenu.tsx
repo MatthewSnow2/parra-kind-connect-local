@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const HamburgerMenu = () => {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
 
   const menuItems = [
     { label: "Home", path: "/" },
@@ -16,7 +17,13 @@ const HamburgerMenu = () => {
     { label: "Caregiver History", path: "/dashboard/history" },
     { label: "Features", path: "/features" },
     { label: "About", path: "/about" },
+    { label: "Privacy Policy", path: "/privacy" },
+    { label: "Terms of Service", path: "/terms" },
   ];
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -62,7 +69,11 @@ const HamburgerMenu = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setOpen(false)}
-                className="block px-4 py-3 text-lg font-medium text-foreground hover:bg-primary hover:text-secondary rounded-lg transition-all duration-200"
+                className={`block px-4 py-3 text-lg font-medium rounded-lg transition-all duration-200 ${
+                  isActive(item.path)
+                    ? "bg-accent text-background font-bold"
+                    : "text-foreground hover:bg-primary hover:text-secondary"
+                }`}
               >
                 {item.label}
               </Link>

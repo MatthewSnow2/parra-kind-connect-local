@@ -101,6 +101,14 @@ export default {
             transform: "translateX(0)",
           },
         },
+        "slide-right": {
+          from: {
+            transform: "translateX(-100%)",
+          },
+          to: {
+            transform: "translateX(100%)",
+          },
+        },
         "glow": {
           "0%, 100%": {
             opacity: "1",
@@ -115,6 +123,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
         "slide-in": "slide-in 0.5s ease-out",
+        "slide-right": "slide-right 0.3s ease-out",
         "glow": "glow 2s ease-in-out infinite",
       },
     },

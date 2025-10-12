@@ -28,9 +28,16 @@ const Hero = () => {
                   🌿 Try Free Beta
                 </Button>
               </BetaSignupDialog>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 group">
-                <MessageCircle className="mr-2 h-5 w-5 group-hover:text-primary transition-colors" />
-                Chat with Parra on WhatsApp
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg px-8 py-6 group"
+                asChild
+              >
+                <a href="https://wa.me/15555555555?text=Hi%20Parra%2C%20I%27d%20like%20to%20learn%20more%20about%20your%20service" target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-2 h-5 w-5 group-hover:text-primary transition-colors" />
+                  Chat with Parra on WhatsApp
+                </a>
               </Button>
             </div>
           </div>

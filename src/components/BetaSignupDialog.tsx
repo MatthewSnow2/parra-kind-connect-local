@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
@@ -52,16 +53,48 @@ export const BetaSignupDialog = ({ children }: BetaSignupDialogProps) => {
 
   const onSubmit = async (data: FormData) => {
     console.log("Beta signup form submitted:", data);
-    
-    // Here you would typically send the data to your backend
-    // For now, we'll just show a success message
-    toast({
-      title: "Welcome to the Beta! 🌿",
-      description: "We'll be in touch soon with your early access details.",
-    });
-    
-    form.reset();
-    setOpen(false);
+
+    try {
+      // Insert the signup data into Supabase
+      const { error } = await supabase
+        .from('waitlist_signups')
+        .insert([
+          {
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            message: data.message || null,
+          }
+        ]);
+
+      if (error) {
+        // Handle duplicate email error
+        if (error.code === '23505') {
+          toast({
+            title: "Already Registered",
+            description: "This email is already on our waitlist. We'll be in touch soon!",
+            variant: "default",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Welcome to the Beta! 🌿",
+          description: "We'll be in touch soon with your early access details.",
+        });
+      }
+
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      console.error("Error submitting signup:", error);
+      toast({
+        title: "Signup Failed",
+        description: "There was a problem submitting your signup. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

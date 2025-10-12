@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic } from "lucide-react";
+import { Send, Mic, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  timestamp?: string;
 }
 
 const SeniorChat = () => {
@@ -19,13 +22,19 @@ const SeniorChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm Parra, your friendly companion. How are you feeling today?"
+      content: "Hello! I'm Parra, your friendly companion. How are you feeling today?",
+      timestamp: new Date().toISOString()
     }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [checkInStarted] = useState(new Date().toISOString());
+  const [checkInId, setCheckInId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // For now, use test patient ID - in production this would come from auth
+  const testPatientId = "11111111-1111-1111-1111-111111111111";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -34,6 +43,59 @@ const SeniorChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const saveCheckIn = async () => {
+    try {
+      const messagesWithTimestamps = messages.map((msg, idx) => ({
+        ...msg,
+        timestamp: msg.timestamp || new Date(Date.now() - (messages.length - idx) * 1000).toISOString()
+      }));
+
+      const checkInData = {
+        patient_id: testPatientId,
+        interaction_type: mode === "talk" ? "voice" as const : "text" as const,
+        started_at: checkInStarted,
+        ended_at: new Date().toISOString(),
+        messages: messagesWithTimestamps,
+        sentiment_score: null, // TODO: Add sentiment analysis
+        mood_detected: null, // TODO: Add mood detection
+        topics_discussed: [], // TODO: Extract topics
+        safety_concern_detected: false,
+      };
+
+      if (checkInId) {
+        // Update existing check-in
+        const { error } = await supabase
+          .from("check_ins")
+          .update(checkInData)
+          .eq("id", checkInId);
+
+        if (error) throw error;
+      } else {
+        // Create new check-in
+        const { data, error } = await supabase
+          .from("check_ins")
+          .insert(checkInData)
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) setCheckInId(data.id);
+      }
+
+      sonnerToast.success("Check-in saved successfully");
+    } catch (error) {
+      console.error("Error saving check-in:", error);
+      sonnerToast.error("Failed to save check-in");
+    }
+  };
+
+  // Auto-save every 5 messages
+  useEffect(() => {
+    if (messages.length > 1 && messages.length % 5 === 0) {
+      saveCheckIn();
+    }
+  }, [messages.length]);
 
   const streamChat = async (userMessage: Message) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/senior-chat`;
@@ -94,7 +156,11 @@ const SeniorChat = () => {
                     content: assistantContent,
                   };
                 } else {
-                  newMessages.push({ role: "assistant", content: assistantContent });
+                  newMessages.push({
+                    role: "assistant",
+                    content: assistantContent,
+                    timestamp: new Date().toISOString()
+                  });
                 }
 
                 return newMessages;
@@ -118,7 +184,11 @@ const SeniorChat = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    const userMessage: Message = {
+      role: "user",
+      content: input.trim(),
+      timestamp: new Date().toISOString()
+    };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -136,12 +206,26 @@ const SeniorChat = () => {
           <Card className="bg-card flex-1 flex flex-col shadow-xl">
             {/* Chat Header */}
             <div className="border-b border-primary p-6">
-              <h2 className="text-3xl font-heading font-bold text-secondary mb-2">
-                Chat with Parra
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {mode === "talk" ? "Voice mode (coming soon - using text for now)" : "Type your message below"}
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-heading font-bold text-secondary mb-2">
+                    Chat with Parra
+                  </h2>
+                  <p className="text-lg text-muted-foreground">
+                    {mode === "talk" ? "Voice mode (coming soon - using text for now)" : "Type your message below"}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={saveCheckIn}
+                  className="gap-2"
+                  disabled={messages.length <= 1}
+                >
+                  <Save className="h-5 w-5" />
+                  Save Chat
+                </Button>
+              </div>
             </div>
 
             {/* Messages */}

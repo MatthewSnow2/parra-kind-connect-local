@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface HistoryEntry {
@@ -14,6 +16,8 @@ interface HistoryEntry {
   mood: "happy" | "neutral" | "sad" | "concerned";
   interactions: number;
   summary: string;
+  highlights?: string[];
+  concerns?: string[];
 }
 
 const HistoryView = () => {
@@ -22,30 +26,37 @@ const HistoryView = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [timePeriod, setTimePeriod] = useState<7 | 14 | 30>(7);
 
-  // Mock history data - TODO: Replace with real data
-  const historyData: HistoryEntry[] = [
-    {
-      date: "10/11/2025",
-      status: "ok",
-      mood: "happy",
-      interactions: 5,
-      summary: "Had a great day! Morning walk completed, took medication on time, and chatted with granddaughter in the evening."
+  // For now, use test patient ID - in production this would come from auth
+  const testPatientId = "11111111-1111-1111-1111-111111111111";
+
+  // Fetch daily summaries
+  const { data: summaries, isLoading } = useQuery({
+    queryKey: ["daily-summaries", testPatientId, timePeriod],
+    queryFn: async () => {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - timePeriod);
+
+      const { data, error } = await supabase
+        .from("daily_summaries")
+        .select("*")
+        .eq("patient_id", testPatientId)
+        .gte("summary_date", startDate.toISOString().split('T')[0])
+        .order("summary_date", { ascending: false });
+
+      if (error) throw error;
+      return data;
     },
-    {
-      date: "09/11/2025",
-      status: "ok",
-      mood: "happy",
-      interactions: 4,
-      summary: "Good morning routine. Breakfast with tea. Planned afternoon nap."
-    },
-    {
-      date: "08/11/2025",
-      status: "warning",
-      mood: "neutral",
-      interactions: 3,
-      summary: "Slept poorly last night but feeling better after morning coffee. Short walk planned for later."
-    }
-  ];
+  });
+
+  const historyData: HistoryEntry[] = summaries?.map(summary => ({
+    date: new Date(summary.summary_date).toLocaleDateString(),
+    status: summary.overall_status,
+    mood: (summary.overall_mood as "happy" | "neutral" | "sad" | "concerned") || "neutral",
+    interactions: summary.check_in_count,
+    summary: summary.summary_text || "No summary available",
+    highlights: summary.highlights || undefined,
+    concerns: summary.concerns || undefined,
+  })) || [];
 
   const selectedEntry = selectedDate
     ? historyData.find(entry => entry.date === selectedDate)
@@ -66,6 +77,17 @@ const HistoryView = () => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </main>
+      </div>
+    );
+  }
 
   if (view === "detail" && selectedEntry) {
     return (
@@ -123,6 +145,40 @@ const HistoryView = () => {
                 </p>
               </div>
             </div>
+
+            {/* Highlights */}
+            {selectedEntry.highlights && selectedEntry.highlights.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-2xl font-heading font-bold text-primary mb-4">
+                  Highlights
+                </h3>
+                <ul className="space-y-2">
+                  {selectedEntry.highlights.map((highlight, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-primary mt-1">✓</span>
+                      <span className="text-lg">{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Concerns */}
+            {selectedEntry.concerns && selectedEntry.concerns.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-2xl font-heading font-bold text-alert mb-4">
+                  Concerns
+                </h3>
+                <ul className="space-y-2">
+                  {selectedEntry.concerns.map((concern, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-alert mt-1">⚠</span>
+                      <span className="text-lg">{concern}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Back Button */}
             <div className="mt-8">

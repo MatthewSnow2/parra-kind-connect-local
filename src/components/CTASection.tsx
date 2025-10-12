@@ -21,8 +21,15 @@ const CTASection = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </BetaSignupDialog>
-            <Button size="lg" variant="outline" className="text-lg px-10 py-6">
-              For Families & Caregivers
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-lg px-10 py-6"
+              asChild
+            >
+              <a href="https://wa.me/15555555555?text=Hi%2C%20I%27m%20a%20family%20caregiver%20interested%20in%20Parra%20Connect" target="_blank" rel="noopener noreferrer">
+                For Families & Caregivers
+              </a>
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-6">
