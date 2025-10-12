@@ -1,4 +1,34 @@
+/**
+ * Senior Chat Edge Function
+ *
+ * Secure chat endpoint with comprehensive input validation.
+ *
+ * Security Features:
+ * - Input validation using Zod schemas
+ * - Message sanitization
+ * - Rate limiting
+ * - Authentication required
+ * - Content type validation
+ * - Error handling
+ *
+ * @module edge-functions/senior-chat
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  seniorChatInputSchema,
+  validateInput,
+  sanitizeChatMessage,
+  createValidationErrorResponse,
+  hasValidAuth,
+  createUnauthorizedResponse,
+  isJsonRequest,
+  createInvalidContentTypeResponse,
+  safelyParseJson,
+  checkRateLimit,
+  createRateLimitResponse,
+  extractAuthToken,
+} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,20 +36,77 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages } = await req.json();
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is not configured");
+    // Validate authentication
+    if (!hasValidAuth(req)) {
+      return createUnauthorizedResponse();
     }
 
-    console.log("Calling OpenAI with messages:", messages);
+    // Extract user identifier for rate limiting
+    const authToken = extractAuthToken(req);
+    const userId = authToken?.substring(0, 36) || "anonymous"; // Use first 36 chars as identifier
 
+    // Check rate limit (30 requests per minute)
+    const rateLimit = checkRateLimit(userId, 30, 60000);
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.resetIn);
+    }
+
+    // Validate content type
+    if (!isJsonRequest(req)) {
+      return createInvalidContentTypeResponse();
+    }
+
+    // Safely parse JSON body
+    const body = await safelyParseJson(req);
+    if (!body) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid JSON",
+          message: "Request body must be valid JSON",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Validate input with Zod schema
+    const validation = validateInput(seniorChatInputSchema, body);
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.errors);
+    }
+
+    const { messages } = validation.data;
+
+    // Sanitize all message content
+    const sanitizedMessages = messages.map((msg) => ({
+      ...msg,
+      content: sanitizeChatMessage(msg.content),
+    }));
+
+    // Get OpenAI API key
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "Service configuration error" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log("Calling OpenAI with", sanitizedMessages.length, "messages");
+
+    // Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -68,54 +155,55 @@ Remember preferred name, common routines, likes and dislikes, typical chat windo
 Do not machine gun questions. Do not ask yes or no questions back to back. Do not repeat the same reminder text twice in a row. Do not claim to diagnose any condition.
 
 **Quality bar:**
-Every reply must be short, kind, and concrete. Every commitment must have a time. Every alert must include one sentence of context that a human can act on. Never invent events or medications that were not mentioned. If the user wants to chat about something fun, follow their lead and save wellness for the next turn.`
+Every reply must be short, kind, and concrete. Every commitment must have a time. Every alert must include one sentence of context that a human can act on. Never invent events or medications that were not mentioned. If the user wants to chat about something fun, follow their lead and save wellness for the next turn.`,
           },
-          ...messages,
+          ...sanitizedMessages,
         ],
         stream: true,
       }),
     });
 
+    // Handle OpenAI errors
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
+      console.error("OpenAI API error:", response.status, errorText);
+
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), 
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
           {
             status: 429,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
       }
-      
+
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "AI usage limit reached. Please contact support." }), 
+          JSON.stringify({ error: "AI usage limit reached. Please contact support." }),
           {
             status: 402,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
       }
-      
-      return new Response(
-        JSON.stringify({ error: "AI service error" }), 
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+
+      return new Response(JSON.stringify({ error: "AI service error" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
+    // Return streaming response
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
     console.error("Chat error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), 
+      JSON.stringify({
+        error: e instanceof Error ? e.message : "Unknown error",
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

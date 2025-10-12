@@ -1,28 +1,72 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { X, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 const HamburgerMenu = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, profile, signOut, isSenior, isCaregiver, isFamilyMember, isAdmin } = useAuth();
 
-  const menuItems = [
-    { label: "Home", path: "/" },
-    { label: "Patient Chat", path: "/senior" },
-    { label: "Patient Dashboard", path: "/senior/dashboard" },
-    { label: "Patient History", path: "/senior/history" },
-    { label: "Caregiver Dashboard", path: "/dashboard" },
-    { label: "Caregiver History", path: "/dashboard/history" },
-    { label: "Features", path: "/features" },
-    { label: "About", path: "/about" },
-    { label: "Privacy Policy", path: "/privacy" },
-    { label: "Terms of Service", path: "/terms" },
-  ];
+  // Build menu items based on user role
+  const getMenuItems = () => {
+    const publicItems = [
+      { label: "Home", path: "/" },
+      { label: "Features", path: "/features" },
+      { label: "About", path: "/about" },
+    ];
+
+    if (!isAuthenticated) {
+      return [
+        ...publicItems,
+        { label: "Privacy Policy", path: "/privacy" },
+        { label: "Terms of Service", path: "/terms" },
+      ];
+    }
+
+    const protectedItems = [...publicItems];
+
+    // Senior-specific items
+    if (isSenior) {
+      protectedItems.push(
+        { label: "My Dashboard", path: "/senior/dashboard" },
+        { label: "Chat with Parra", path: "/senior/chat" },
+        { label: "My History", path: "/senior/history" }
+      );
+    }
+
+    // Caregiver/Family/Admin items
+    if (isCaregiver || isFamilyMember || isAdmin) {
+      protectedItems.push(
+        { label: "Caregiver Dashboard", path: "/dashboard" },
+        { label: "Patient History", path: "/dashboard/history" }
+      );
+    }
+
+    return protectedItems;
+  };
+
+  const menuItems = getMenuItems();
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setOpen(false);
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out");
+    }
   };
 
   return (
@@ -62,8 +106,27 @@ const HamburgerMenu = () => {
             </Button>
           </div>
 
+          {/* User Info (if authenticated) */}
+          {isAuthenticated && profile && (
+            <div className="mb-6 p-4 bg-muted rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center">
+                  <User className="h-5 w-5 text-background" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground truncate">
+                    {profile.display_name || profile.full_name}
+                  </p>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {profile.role.replace('_', ' ')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Navigation Links */}
-          <nav className="flex-1 space-y-2">
+          <nav className="flex-1 space-y-2 overflow-y-auto">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
@@ -82,19 +145,41 @@ const HamburgerMenu = () => {
 
           {/* Footer Actions */}
           <div className="pt-6 border-t border-primary space-y-3">
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full text-lg"
-            >
-              Sign In
-            </Button>
-            <Button
-              size="lg"
-              className="w-full text-lg bg-accent hover:bg-accent/90"
-            >
-              Try Free Beta
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full text-lg"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-5 w-5" />
+                Sign Out
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full text-lg"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/login");
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  size="lg"
+                  className="w-full text-lg bg-accent hover:bg-accent/90"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/signup");
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </SheetContent>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Para Connect - Caring Made Simple</title>
+    <meta name="description" content="Para Connect helps families support independent seniors through conversational AI check-ins, fall alerts, and wellness updates — all through familiar tools like WhatsApp." />
+    <meta name="author" content="Para Connect" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/parrot.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/parrot.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/parrot.svg" />
+
+    <!-- Optimized Font Loading -->
+    <!-- Preconnect to Google Fonts with high priority -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Load fonts asynchronously with font-display: swap for better performance -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <!-- Fallback for no-JS -->
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    </noscript>
+
+    <!-- System font fallback to prevent FOUT -->
+    <style>
+      /* Critical CSS - inline font-family fallbacks */
+      body {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      }
+
+      /* Loading state styles */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        z-index: 9999;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-top-color: #3b82f6;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* Hide loading screen once app is ready */
+      .loaded #loading-screen {
+        display: none;
+      }
+    </style>
+
+    <!-- Preload critical resources -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Para Connect - Caring Made Simple" />
+    <meta property="og:description" content="Smart caregiving for seniors without the gadgets" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- DNS Prefetch for external domains -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+  </head>
+
+  <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- App Root -->
+    <div id="root"></div>
+
+    <!-- Main App Script -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Remove loading screen once app is loaded -->
+    <script>
+      window.addEventListener('load', function() {
+        document.documentElement.classList.add('loaded');
+      });
+    </script>
+  </body>
+</html>

@@ -1,7 +1,24 @@
+/**
+ * Caregiver Dashboard Component
+ *
+ * Secure dashboard for caregivers with validated note input.
+ *
+ * Security Features:
+ * - Note validation using Zod schemas
+ * - Input sanitization to prevent XSS
+ * - Rate limiting to prevent spam
+ * - User authentication and authorization
+ * - Content length limits
+ *
+ * @example
+ * Navigate to /caregiver/dashboard to access this page
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
@@ -10,47 +27,76 @@ import { Button } from "@/components/ui/button";
 import { Mic, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { noteTextSchema } from "@/lib/validation/schemas";
+import { sanitizeText } from "@/lib/validation/sanitization";
+import { checkRateLimit, recordRateLimitedAction, RATE_LIMITS } from "@/lib/validation/rate-limiting";
 
 const CaregiverDashboard = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [notes, setNotes] = useState("");
 
-  // For now, we'll use the first patient (Margaret) - in production this would come from auth/context
-  const testPatientId = "11111111-1111-1111-1111-111111111111";
+  // Get the first patient that this caregiver has access to
+  // In a full implementation, you would have a patient selector or get this from URL params
+  const { data: careRelationships, isLoading: relationshipsLoading } = useQuery({
+    queryKey: ["care-relationships", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from("care_relationships")
+        .select("patient_id, relationship_type, status")
+        .eq("caregiver_id", user.id)
+        .eq("status", "active")
+        .limit(1);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const patientId = careRelationships?.[0]?.patient_id;
 
   // Fetch patient profile
   const { data: patient, isLoading: patientLoading } = useQuery({
-    queryKey: ["patient", testPatientId],
+    queryKey: ["patient", patientId],
     queryFn: async () => {
+      if (!patientId) return null;
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", testPatientId)
+        .eq("id", patientId)
         .single();
 
       if (error) throw error;
       return data;
     },
+    enabled: !!patientId,
   });
 
   // Fetch today's daily summary
   const { data: todaySummary, isLoading: summaryLoading } = useQuery({
-    queryKey: ["daily-summary", testPatientId],
+    queryKey: ["daily-summary", patientId],
     queryFn: async () => {
+      if (!patientId) return null;
+
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from("daily_summaries")
         .select("*")
-        .eq("patient_id", testPatientId)
+        .eq("patient_id", patientId)
         .eq("summary_date", today)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
       return data;
     },
+    enabled: !!patientId,
   });
 
-  const isLoading = patientLoading || summaryLoading;
+  const isLoading = relationshipsLoading || patientLoading || summaryLoading;
 
   const patientName = patient?.display_name || patient?.full_name || "Patient";
   const status: "ok" | "warning" | "alert" = todaySummary?.overall_status || "ok";
@@ -63,19 +109,37 @@ const CaregiverDashboard = () => {
     : "Not available";
 
   const handleSaveNote = async () => {
-    if (!notes.trim()) return;
+    if (!notes.trim() || !patientId || !user?.id) return;
+
+    // Validate note with Zod schema
+    const validation = noteTextSchema.safeParse(notes.trim());
+    if (!validation.success) {
+      const errorMessage = validation.error.errors[0]?.message || "Invalid note content";
+      toast.error(errorMessage);
+      return;
+    }
+
+    // Check rate limit
+    const rateLimitCheck = checkRateLimit('note_create', user.id, RATE_LIMITS.NOTE_CREATE);
+    if (!rateLimitCheck.allowed) {
+      toast.error(`Too many notes. Please wait ${Math.ceil(rateLimitCheck.resetIn / 1000)} seconds.`);
+      return;
+    }
 
     try {
-      // For now we'll use a placeholder caregiver ID - in production this would come from auth
-      const caregiverId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+      // Sanitize note text
+      const sanitizedNote = sanitizeText(validation.data);
+
+      // Record rate limit action
+      recordRateLimitedAction('note_create', user.id);
 
       const { error } = await supabase
         .from("caregiver_notes")
         .insert({
-          patient_id: testPatientId,
-          caregiver_id: caregiverId,
+          patient_id: patientId,
+          caregiver_id: user.id,
           note_type: "general",
-          note_text: notes,
+          note_text: sanitizedNote,
           shared_with_patient: true,
         });
 
@@ -95,6 +159,26 @@ const CaregiverDashboard = () => {
         <Navigation />
         <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </main>
+      </div>
+    );
+  }
+
+  // Check if caregiver has access to any patients
+  if (!patientId) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navigation />
+        <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
+          <div className="text-center space-y-4 max-w-md">
+            <h2 className="text-2xl font-heading font-bold text-secondary">
+              No Patient Assigned
+            </h2>
+            <p className="text-muted-foreground">
+              You don't have any active care relationships yet. Please contact your administrator
+              to be assigned to a patient.
+            </p>
+          </div>
         </main>
       </div>
     );

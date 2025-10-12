@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
+import SkipNavigation from "@/components/SkipNavigation";
 import Footer from "@/components/Footer";
 import ChatInterface from "@/components/ChatInterface";
 import { Card } from "@/components/ui/card";
@@ -153,8 +154,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SkipNavigation />
       <Navigation />
-      <main className="flex-1 pt-24 pb-12 bg-background">
+      <main id="main-content" className="flex-1 pt-24 pb-12 bg-background" tabIndex={-1}>
         <div className="container mx-auto px-4">
           <div className="mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-heading font-bold mb-2" style={{ color: '#2F4733' }}>
@@ -166,23 +168,40 @@ const Dashboard = () => {
           </div>
 
           {/* Senior Profile Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div
+            className="grid md:grid-cols-3 gap-6 mb-8"
+            role="region"
+            aria-label="Senior care recipient profiles"
+          >
             {seniors.map((senior, index) => (
-              <Card 
+              <Card
                 key={index}
                 className="p-6 transition-all duration-300 hover:shadow-lg animate-fade-in"
-                style={{ 
+                style={{
                   animationDelay: `${index * 0.1}s`,
                   backgroundColor: 'white'
                 }}
+                role="article"
+                aria-labelledby={`senior-name-${index}`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12" style={{ backgroundColor: getStatusColor(senior.status) }}>
-                      <AvatarFallback style={{ color: '#2F4733' }}>{senior.avatar}</AvatarFallback>
+                    <Avatar
+                      className="h-12 w-12"
+                      style={{ backgroundColor: getStatusColor(senior.status) }}
+                      role="img"
+                      aria-label={`${senior.name} avatar`}
+                    >
+                      <AvatarFallback style={{ color: '#2F4733' }} aria-hidden="true">
+                        {senior.avatar}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-heading font-bold text-lg" style={{ color: '#2F4733' }}>
+                      <h3
+                        id={`senior-name-${index}`}
+                        className="font-heading font-bold text-lg"
+                        style={{ color: '#2F4733' }}
+                      >
                         {senior.name}
                       </h3>
                       <p className="text-sm" style={{ color: 'rgba(47, 71, 51, 0.6)' }}>
@@ -190,9 +209,11 @@ const Dashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <div 
+                  <div
                     className="flex items-center gap-1 px-3 py-1 rounded-full"
                     style={{ backgroundColor: getStatusColor(senior.status), color: '#2F4733' }}
+                    role="status"
+                    aria-label={`Health status: ${senior.status}`}
                   >
                     {getStatusIcon(senior.status)}
                   </div>
@@ -229,8 +250,8 @@ const Dashboard = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Daily Summary Feed */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="p-6" style={{ backgroundColor: 'white' }}>
-                <h2 className="text-2xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
+              <Card className="p-6" style={{ backgroundColor: 'white' }} role="region" aria-labelledby="summary-feed-heading">
+                <h2 id="summary-feed-heading" className="text-2xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Daily Summary Feed
                 </h2>
                 <div className="space-y-3">
@@ -270,8 +291,8 @@ const Dashboard = () => {
               </Card>
 
               {/* Mood Trend Chart */}
-              <Card className="p-6" style={{ backgroundColor: 'white' }}>
-                <h2 className="text-2xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
+              <Card className="p-6" style={{ backgroundColor: 'white' }} role="region" aria-labelledby="mood-trends-heading">
+                <h2 id="mood-trends-heading" className="text-2xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Weekly Mood & Activity Trends
                 </h2>
                  <ResponsiveContainer width="100%" height={300}>
@@ -357,25 +378,30 @@ const Dashboard = () => {
             <div className="space-y-6">
               <ChatInterface />
 
-              <Card className="p-6" style={{ backgroundColor: 'white' }}>
-                <h2 className="text-xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
+              <Card className="p-6" style={{ backgroundColor: 'white' }} role="region" aria-labelledby="caregiver-notes-heading">
+                <h2 id="caregiver-notes-heading" className="text-xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Caregiver Notes
                 </h2>
-                <Textarea 
+                <label htmlFor="caregiver-notes-textarea" className="sr-only">
+                  Caregiver notes and reminders
+                </label>
+                <Textarea
+                  id="caregiver-notes-textarea"
                   placeholder="Add reminders (e.g., 'Doctor visit Tue')..."
                   className="mb-4 text-lg"
                   style={{ borderColor: '#C9EBC0', minHeight: '100px' }}
+                  aria-label="Caregiver notes text area"
                 />
                 <Button className="w-full">
                   Save Note
                 </Button>
               </Card>
 
-              <Card className="p-6" style={{ backgroundColor: 'white' }}>
-                <h2 className="text-xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
+              <Card className="p-6" style={{ backgroundColor: 'white' }} role="region" aria-labelledby="quick-actions-heading">
+                <h2 id="quick-actions-heading" className="text-xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Quick Actions
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-3" role="group" aria-labelledby="quick-actions-heading">
                   <Button 
                     variant="outline" 
                     className="w-full justify-start gap-2 text-base h-12"

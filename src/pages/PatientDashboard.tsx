@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
@@ -12,61 +13,76 @@ import { Textarea } from "@/components/ui/textarea";
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [notes, setNotes] = useState("");
 
-  // For now, we'll use the first patient (Margaret) - in production this would come from auth
-  const testPatientId = "11111111-1111-1111-1111-111111111111";
+  // Use authenticated user's ID
+  const patientId = user?.id;
 
-  // Fetch patient profile
-  const { data: patient, isLoading: patientLoading } = useQuery({
-    queryKey: ["patient", testPatientId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", testPatientId)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Use the profile from auth context (already loaded)
+  const patient = profile;
 
   // Fetch today's daily summary
   const { data: todaySummary, isLoading: summaryLoading } = useQuery({
-    queryKey: ["patient-daily-summary", testPatientId],
+    queryKey: ["patient-daily-summary", patientId],
     queryFn: async () => {
+      if (!patientId) return null;
+
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from("daily_summaries")
         .select("*")
-        .eq("patient_id", testPatientId)
+        .eq("patient_id", patientId)
         .eq("summary_date", today)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
       return data;
     },
+    enabled: !!patientId,
   });
 
+  // Type for caregiver notes with joined profile data
+  type CaregiverNoteWithProfile = {
+    id: string;
+    patient_id: string;
+    caregiver_id: string;
+    note_type: string;
+    note_text: string;
+    is_reminder: boolean;
+    reminder_date: string | null;
+    reminder_time: string | null;
+    shared_with_patient: boolean;
+    shared_with_care_team: boolean;
+    created_at: string;
+    updated_at: string;
+    caregiver: {
+      display_name: string | null;
+      full_name: string | null;
+    } | null;
+  };
+
   // Fetch notes shared with patient
-  const { data: caregiverNotes } = useQuery({
-    queryKey: ["patient-notes", testPatientId],
+  const { data: caregiverNotes } = useQuery<CaregiverNoteWithProfile[]>({
+    queryKey: ["patient-notes", patientId],
     queryFn: async () => {
+      if (!patientId) return [];
+
       const { data, error } = await supabase
         .from("caregiver_notes")
         .select("*, caregiver:profiles!caregiver_notes_caregiver_id_fkey(display_name, full_name)")
-        .eq("patient_id", testPatientId)
+        .eq("patient_id", patientId)
         .eq("shared_with_patient", true)
         .order("created_at", { ascending: false })
         .limit(5);
 
       if (error) throw error;
-      return data;
+      return data as unknown as CaregiverNoteWithProfile[];
     },
+    enabled: !!patientId,
   });
 
-  const isLoading = patientLoading || summaryLoading;
+  const isLoading = summaryLoading;
 
   const patientName = patient?.display_name || patient?.full_name || "Patient";
   const status: "ok" | "warning" | "alert" = todaySummary?.overall_status || "ok";
@@ -133,7 +149,7 @@ const PatientDashboard = () => {
                 </h2>
                 {caregiverNotes && caregiverNotes.length > 0 ? (
                   <div className="space-y-3">
-                    {caregiverNotes.map((note: any) => (
+                    {caregiverNotes.map((note) => (
                       <div
                         key={note.id}
                         className="p-4 bg-muted/50 rounded-lg border border-secondary/20"

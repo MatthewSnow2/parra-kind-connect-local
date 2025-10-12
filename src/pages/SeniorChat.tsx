@@ -1,6 +1,25 @@
+/**
+ * Senior Chat Component
+ *
+ * Secure chat interface with comprehensive input validation and sanitization.
+ *
+ * Security Features:
+ * - Message validation using Zod schemas
+ * - Input sanitization to prevent XSS
+ * - Rate limiting to prevent spam
+ * - Secure message storage
+ * - Content length limits
+ * - User authentication required
+ *
+ * @example
+ * Navigate to /senior/chat to access this page
+ */
+
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { callSupabaseFunctionStreaming } from "@/lib/supabase-functions";
+import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +27,9 @@ import { Input } from "@/components/ui/input";
 import { Send, Mic, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
+import { chatMessageSchema, chatMessageObjectSchema, type ChatMessage } from "@/lib/validation/schemas";
+import { sanitizeChatMessage, sanitizeText } from "@/lib/validation/sanitization";
+import { checkRateLimit, recordRateLimitedAction, RATE_LIMITS } from "@/lib/validation/rate-limiting";
 
 interface Message {
   role: "user" | "assistant";
@@ -18,11 +40,12 @@ interface Message {
 const SeniorChat = () => {
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode") || "type";
+  const { user, profile } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm Parra, your friendly companion. How are you feeling today?",
+      content: `Hello! I'm Parra, your friendly companion. How are you feeling today?`,
       timestamp: new Date().toISOString()
     }
   ]);
@@ -33,8 +56,8 @@ const SeniorChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // For now, use test patient ID - in production this would come from auth
-  const testPatientId = "11111111-1111-1111-1111-111111111111";
+  // Use authenticated user's ID
+  const patientId = user?.id;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,6 +68,11 @@ const SeniorChat = () => {
   }, [messages]);
 
   const saveCheckIn = async () => {
+    if (!patientId) {
+      sonnerToast.error("Unable to save: User not authenticated");
+      return;
+    }
+
     try {
       const messagesWithTimestamps = messages.map((msg, idx) => ({
         ...msg,
@@ -52,7 +80,7 @@ const SeniorChat = () => {
       }));
 
       const checkInData = {
-        patient_id: testPatientId,
+        patient_id: patientId,
         interaction_type: mode === "talk" ? "voice" as const : "text" as const,
         started_at: checkInStarted,
         ended_at: new Date().toISOString(),
@@ -68,7 +96,8 @@ const SeniorChat = () => {
         const { error } = await supabase
           .from("check_ins")
           .update(checkInData)
-          .eq("id", checkInId);
+          .eq("id", checkInId)
+          .eq("patient_id", patientId); // Security: Ensure user owns this check-in
 
         if (error) throw error;
       } else {
@@ -93,27 +122,18 @@ const SeniorChat = () => {
   // Auto-save every 5 messages
   useEffect(() => {
     if (messages.length > 1 && messages.length % 5 === 0) {
-      saveCheckIn();
+      void saveCheckIn();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length]);
 
   const streamChat = async (userMessage: Message) => {
-    const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/senior-chat`;
-
     try {
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+      // Use secure function calling with proper authentication
+      const resp = await callSupabaseFunctionStreaming({
+        functionName: "senior-chat",
+        body: { messages: [...messages, userMessage] },
       });
-
-      if (!resp.ok) {
-        const error = await resp.json();
-        throw new Error(error.error || "Failed to get response");
-      }
 
       if (!resp.body) throw new Error("No response body");
 
@@ -182,13 +202,46 @@ const SeniorChat = () => {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !user?.id) return;
+
+    // Validate message length
+    const trimmedInput = input.trim();
+
+    // Validate with Zod schema
+    const validation = chatMessageSchema.safeParse(trimmedInput);
+    if (!validation.success) {
+      const errorMessage = validation.error.errors[0]?.message || "Invalid message";
+      toast({
+        title: "Validation Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check rate limit
+    const rateLimitCheck = checkRateLimit('chat_message', user.id, RATE_LIMITS.CHAT_MESSAGE);
+    if (!rateLimitCheck.allowed) {
+      toast({
+        title: "Rate Limit",
+        description: `Too many messages. Please wait ${Math.ceil(rateLimitCheck.resetIn / 1000)} seconds.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Sanitize message content
+    const sanitizedContent = sanitizeChatMessage(validation.data);
+
+    // Record rate limit action
+    recordRateLimitedAction('chat_message', user.id);
 
     const userMessage: Message = {
       role: "user",
-      content: input.trim(),
+      content: sanitizedContent,
       timestamp: new Date().toISOString()
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);

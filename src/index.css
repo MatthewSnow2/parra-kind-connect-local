@@ -138,10 +138,57 @@ All colors MUST be HSL.
     font-size: 24px;
   }
 
-  /* Ensure minimum touch target sizes for accessibility */
+  /* Ensure minimum touch target sizes for accessibility - WCAG 2.1 Level AAA 2.5.5 */
   button, a {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* WCAG 2.1 Level AA 2.4.7 - Enhanced Focus Visible Styles */
+  *:focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* High contrast focus for better visibility (especially for seniors) */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid hsl(var(--accent));
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px hsl(var(--accent) / 0.2);
+  }
+
+  /* Remove default outline but keep for keyboard navigation */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Screen reader only text - WCAG 2.1 Level A 1.1.1 */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Skip to content link styling */
+  .skip-link:focus {
+    clip: auto;
+    height: auto;
+    overflow: visible;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
   }
 }
 
@@ -149,8 +196,53 @@ All colors MUST be HSL.
   .text-gradient {
     @apply bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent;
   }
-  
+
   .shadow-glow {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* WCAG 2.1 Level AAA 2.3.3 - Prefers Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* Keep essential transitions for focus indication */
+    *:focus-visible {
+      transition: outline 0.1s ease-in-out !important;
+    }
+  }
+
+  /* High contrast mode support for Windows users */
+  @media (prefers-contrast: high) {
+    * {
+      border-color: currentColor !important;
+    }
+
+    button,
+    a {
+      border: 2px solid currentColor !important;
+    }
+  }
+
+  /* Focus visible indicator with animation for better discoverability */
+  @media (prefers-reduced-motion: no-preference) {
+    .focus-pulse:focus-visible {
+      animation: pulse-focus 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-focus {
+      0%, 100% {
+        box-shadow: 0 0 0 3px hsl(var(--accent) / 0.3);
+      }
+      50% {
+        box-shadow: 0 0 0 6px hsl(var(--accent) / 0.1);
+      }
+    }
   }
 }

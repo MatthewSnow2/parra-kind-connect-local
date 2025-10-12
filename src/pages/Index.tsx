@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import SkipNavigation from "@/components/SkipNavigation";
 import Hero from "@/components/Hero";
 import ValueProps from "@/components/ValueProps";
 import HowItWorks from "@/components/HowItWorks";
@@ -10,8 +11,9 @@ import Footer from "@/components/Footer";
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <SkipNavigation />
       <Navigation />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <Hero />
         <ValueProps />
         <HowItWorks />

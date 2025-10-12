@@ -3,8 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import PageTransition from "@/components/PageTransition";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import CaregiverDashboard from "./pages/CaregiverDashboard";
 import SeniorView from "./pages/SeniorView";
 import SeniorChat from "./pages/SeniorChat";
@@ -20,35 +24,82 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <PageTransition />
-        <Routes>
-          <Route path="/" element={<Index />} />
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <PageTransition />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
 
-          {/* Patient/Senior Routes */}
-          <Route path="/senior" element={<SeniorView />} />
-          <Route path="/senior/chat" element={<SeniorChat />} />
-          <Route path="/senior/dashboard" element={<PatientDashboard />} />
-          <Route path="/senior/history" element={<HistoryView />} />
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
-          {/* Caregiver Routes */}
-          <Route path="/dashboard" element={<CaregiverDashboard />} />
-          <Route path="/dashboard/history" element={<HistoryView />} />
+            {/* Protected Senior Routes */}
+            <Route
+              path="/senior"
+              element={
+                <ProtectedRoute requiredRole="senior">
+                  <SeniorView />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/senior/chat"
+              element={
+                <ProtectedRoute requiredRole="senior">
+                  <SeniorChat />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/senior/dashboard"
+              element={
+                <ProtectedRoute requiredRole="senior">
+                  <PatientDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/senior/history"
+              element={
+                <ProtectedRoute requiredRole="senior">
+                  <HistoryView />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Info Pages */}
-          <Route path="/features" element={<Features />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
+            {/* Protected Caregiver Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requiredRole={["caregiver", "family_member", "admin"]}>
+                  <CaregiverDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/history"
+              element={
+                <ProtectedRoute requiredRole={["caregiver", "family_member", "admin"]}>
+                  <HistoryView />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
