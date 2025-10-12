@@ -8,7 +8,10 @@ The chat feature requires a Supabase Edge Function with OpenAI integration to be
 
 ✅ **Edge Function Code Exists**: `/supabase/functions/senior-chat/index.ts`
 ❌ **Edge Function Not Deployed**: Needs to be deployed to Supabase
-❌ **OpenAI API Key Not Configured**: Environment variable missing
+⚠️  **OpenAI API Key May Be Read-Only or Invalid**: If you already have an `OPENAI_API_KEY` secret set in Supabase, it might be:
+   - A read-only key (not allowed for chat completions)
+   - Expired or invalid
+   - From a different OpenAI account
 
 ---
 
@@ -18,9 +21,15 @@ The chat feature requires a Supabase Edge Function with OpenAI integration to be
 
 1. Go to [OpenAI Platform](https://platform.openai.com/)
 2. Sign up or log in
-3. Navigate to API Keys section
-4. Create a new API key
-5. Copy the key (starts with `sk-...`)
+3. Navigate to **API Keys** section
+4. Click **+ Create new secret key**
+5. **IMPORTANT**: Set permissions to **"All"** or at minimum include:
+   - `Model capabilities` → `Read` & `Write`
+   - This allows the key to call chat completion endpoints
+6. Copy the key (starts with `sk-...`)
+7. **Save it somewhere safe** - you won't be able to see it again!
+
+⚠️ **Read-Only Keys Won't Work**: If your key only has "Read" permissions, chat completions will fail with a 403 error.
 
 ### 2. Deploy the Edge Function to Supabase
 
@@ -32,20 +41,38 @@ cd /workspace/para-kind-connect-local
 npx supabase functions deploy senior-chat --project-ref xoygyimwkmepwjqmnfxh
 ```
 
-### 3. Set the OpenAI API Key in Supabase
+### 3. Set/Update the OpenAI API Key in Supabase
 
-```bash
-# Set the secret in Supabase
-npx supabase secrets set OPENAI_API_KEY=your-openai-api-key-here --project-ref xoygyimwkmepwjqmnfxh
-```
-
-**OR** via Supabase Dashboard:
+**Recommended Method: Via Supabase Dashboard**
 
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
 2. Select your project: `xoygyimwkmepwjqmnfxh`
-3. Go to **Edge Functions** → **senior-chat**
-4. Click on **Settings**
-5. Add secret: `OPENAI_API_KEY` = `your-key-here`
+3. Click **Project Settings** (gear icon in sidebar)
+4. Go to **Edge Functions** section
+5. Under **Secrets**, look for `OPENAI_API_KEY`
+
+   **If it already exists:**
+   - Click the **Edit** button (pencil icon)
+   - Replace with your new key (with full read/write permissions)
+   - Click **Save**
+
+   **If it doesn't exist:**
+   - Click **Add new secret**
+   - Name: `OPENAI_API_KEY`
+   - Value: Your OpenAI API key (starts with `sk-...`)
+   - Click **Save**
+
+6. After saving, **restart your edge functions** by redeploying (see Step 2)
+
+**Alternative: Via CLI** (requires authentication)
+
+```bash
+# Set or update the secret
+npx supabase secrets set OPENAI_API_KEY=your-openai-api-key-here --project-ref xoygyimwkmepwjqmnfxh
+
+# Verify it was set
+npx supabase secrets list --project-ref xoygyimwkmepwjqmnfxh
+```
 
 ### 4. Verify Deployment
 
@@ -115,9 +142,11 @@ The system prompt includes:
 |--------------|-------|----------|
 | "Failed to get response" | Edge function not deployed | Deploy function (see Step 2) |
 | "OPENAI_API_KEY is not configured" | Missing API key | Add secret (see Step 3) |
+| 403 Forbidden / "Insufficient permissions" | **Read-only API key** | Create new key with **All** or **Read+Write** permissions |
 | "Rate limit exceeded" (429) | Too many requests | Wait a moment and try again |
 | "AI usage limit reached" (402) | OpenAI quota exceeded | Add credits to OpenAI account |
 | "AI service error" (500) | OpenAI API issue | Check OpenAI status page |
+| "Invalid API key" (401) | Wrong/expired key | Generate new key in OpenAI dashboard |
 
 ### Check Edge Function Logs
 
@@ -141,6 +170,45 @@ npx supabase secrets list --project-ref xoygyimwkmepwjqmnfxh
 ```
 
 You should see `OPENAI_API_KEY` in the list.
+
+### Fix Read-Only API Key Issue
+
+If you're getting 403 errors or "Insufficient permissions":
+
+**Step 1: Check your OpenAI key permissions**
+
+1. Go to [OpenAI API Keys](https://platform.openai.com/api-keys)
+2. Find your key (you can't see the actual key, just the name/prefix)
+3. Check the **Permissions** column
+4. If it says **"Read only"** → This won't work for chat!
+
+**Step 2: Create a new key with proper permissions**
+
+1. Click **+ Create new secret key**
+2. Give it a name (e.g., "Parra Connect Chat")
+3. Set **Permissions** to:
+   - **All** (recommended - simplest)
+   - OR at minimum: `Model capabilities: Read + Write`
+4. Copy the key immediately (starts with `sk-...`)
+
+**Step 3: Update in Supabase**
+
+1. Go to Supabase Dashboard → Project Settings → Edge Functions
+2. Find `OPENAI_API_KEY` under Secrets
+3. Click **Edit** (pencil icon)
+4. Paste your new key
+5. Click **Save**
+
+**Step 4: Restart the edge function**
+
+Redeploy to pick up the new key:
+```bash
+npx supabase functions deploy senior-chat --project-ref xoygyimwkmepwjqmnfxh
+```
+
+**Step 5: Test again**
+
+The chat should now work! If it still fails, check the edge function logs for the specific error.
 
 ---
 
