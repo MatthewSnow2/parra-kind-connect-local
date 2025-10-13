@@ -113,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
+      console.log('[AUTH] Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -120,13 +121,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('[AUTH] Error fetching profile:', error);
+        console.error('[AUTH] Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         return null;
       }
 
+      console.log('[AUTH] Profile fetched successfully:', data);
       return data;
     } catch (error) {
-      console.error('Unexpected error fetching profile:', error);
+      console.error('[AUTH] Unexpected error fetching profile:', error);
       return null;
     }
   }, []);
@@ -205,9 +213,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Step 2: Profile should be created automatically by database trigger
       // If not, create it manually (fallback)
       if (authData.user) {
+        console.log('[SIGNUP] User created, checking for profile...', authData.user.id);
+
+        // Wait a moment for trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         const existingProfile = await fetchProfile(authData.user.id);
 
         if (!existingProfile) {
+          console.log('[SIGNUP] Profile not found, creating manually...');
           // Create profile manually if trigger didn't work
           const { error: profileError } = await supabase.from('profiles').insert({
             id: authData.user.id,
@@ -219,9 +233,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           if (profileError) {
-            console.error('Error creating profile:', profileError);
+            console.error('[SIGNUP] Error creating profile:', profileError);
             // Don't return error here - auth user was created successfully
+          } else {
+            console.log('[SIGNUP] Profile created manually successfully');
           }
+        } else {
+          console.log('[SIGNUP] Profile found via trigger:', existingProfile);
         }
       }
 
