@@ -114,11 +114,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log('[AUTH] Fetching profile for user:', userId);
-      const { data, error } = await supabase
+      console.log('[AUTH] Supabase URL:', supabase.supabaseUrl);
+
+      // Add timeout to prevent infinite hanging
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout after 10 seconds')), 10000)
+      );
+
+      console.log('[AUTH] Starting fetch with 10s timeout...');
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      console.log('[AUTH] Fetch completed!');
 
       if (error) {
         console.error('[AUTH] Error fetching profile:', error);
