@@ -1,339 +1,156 @@
-# Para Connect - Accessibility Documentation
+# Parra Connect - Documentation Hub
 
-Welcome to the Para Connect accessibility documentation. This directory contains comprehensive guides, audit reports, and implementation details for WCAG 2.1 Level AA compliance.
-
----
-
-## Documentation Overview
-
-### 📊 [WCAG 2.1 AA Audit Report](./WCAG_2.1_AA_AUDIT_REPORT.md)
-**Comprehensive accessibility audit with detailed findings**
-
-- **Length**: 1,500+ lines
-- **Scope**: Full WCAG 2.1 Level AA compliance audit
-- **Contents**:
-  - Executive summary with compliance scores
-  - Detailed findings by WCAG principle (Perceivable, Operable, Understandable, Robust)
-  - Color contrast analysis with ratios
-  - Remediation recommendations
-  - Testing methodology
-  - Known issues and future enhancements
-
-**Who should read this**: Development leads, QA managers, accessibility specialists, stakeholders
+Welcome to the Parra Connect documentation. This directory contains all technical documentation, guides, and audit reports.
 
 ---
 
-### 🧪 [Accessibility Testing Guide](./ACCESSIBILITY_TESTING.md)
-**Step-by-step testing procedures for all accessibility features**
+## 📚 Documentation Index
 
-- **Length**: 1,800+ lines
-- **Scope**: Complete testing methodology for WCAG 2.1 AA
-- **Contents**:
-  - 10 testing procedures (keyboard, screen reader, contrast, focus, motion, etc.)
-  - Testing tools and setup instructions
-  - Component-specific testing guidelines
-  - Senior-friendly usability testing
-  - Automated testing integration
-  - Manual testing matrix
-  - Quick reference links
+### Getting Started
+- **[Setup Guide](./SETUP_GUIDE.md)** - Initial project setup and configuration
+- **[Developer Guide](./DEVELOPER_GUIDE.md)** - Comprehensive development guide
+- **[Project Overview](./PROJECT_OVERVIEW.md)** - Architecture and project structure
+- **[Troubleshooting](./TROUBLESHOOTING.md)** - Common issues and solutions
 
-**Who should read this**: QA engineers, developers, testers, accessibility auditors
+### Authentication & Security
+- **[Authentication Documentation](./AUTHENTICATION.md)** - Full auth system documentation
+- **[Authentication Quickstart](./AUTHENTICATION_QUICKSTART.md)** - Quick start guide for auth
+- **[Authentication Summary](./AUTHENTICATION_SUMMARY.md)** - Auth implementation overview
+- **[Security Audit Report](./SECURITY_AUDIT_REPORT.md)** - Comprehensive security audit
+- **[Security Checklist](./SECURITY_CHECKLIST.md)** - Security best practices
+- **[Security Improvements](./SECURITY_IMPROVEMENTS.md)** - Recent security enhancements
+- **[Security Improvements Summary](./SECURITY_IMPROVEMENTS_SUMMARY.md)** - Quick summary
+- **[RLS Implementation](./RLS_IMPLEMENTATION_SUMMARY.md)** - Row Level Security guide
 
----
+### Database
+- **[Database Setup Guide](./DATABASE_SETUP_GUIDE.md)** - Database configuration
+- **[DBA Manual](../supabase/migrations/DBA_MANUAL_USER_CREATION.sql)** - User management for DBAs
 
-### ⚡ [Quick Reference Checklist](./ACCESSIBILITY_QUICK_CHECKLIST.md)
-**Fast reference for developers - use before every commit**
+### Chat & AI Features
+- **[Chat Setup Guide](./CHAT_SETUP_GUIDE.md)** - Configure AI chat features
+- **[Debug Chat](./DEBUG_CHAT.md)** - Chat debugging guide
+- **[Deploy Edge Function](./DEPLOY_EDGE_FUNCTION.md)** - Deploy Supabase edge functions
 
-- **Length**: 150 lines
-- **Scope**: Essential accessibility checks
-- **Contents**:
-  - Before-commit checklist
-  - Component templates (button, image, form, page)
-  - Testing commands
-  - Common mistakes to avoid
-  - Quick resources
+### Admin Dashboard
+- **[Admin Dashboard README](./ADMIN_DASHBOARD_README.md)** - Admin dashboard overview
+- **[Admin Integration Guide](./ADMIN_INTEGRATION_GUIDE.md)** - Integrate admin features
 
-**Who should read this**: All developers (use daily)
+### Validation & Testing
+- **[Validation Documentation](./VALIDATION.md)** - Input validation guide
+- **[Validation Quick Reference](./VALIDATION_QUICK_REFERENCE.md)** - Quick validation patterns
+- **[Validation Implementation](./VALIDATION_IMPLEMENTATION_SUMMARY.md)** - Implementation details
+- **[Testing Guide](./TESTING.md)** - Testing strategies and tools
+- **[Test Infrastructure](./TEST_INFRASTRUCTURE_SUMMARY.md)** - Test setup overview
 
----
+### Accessibility
+- **[WCAG 2.1 AA Audit Report](./WCAG_2.1_AA_AUDIT_REPORT.md)** - Comprehensive accessibility audit
+- **[Accessibility Testing](./ACCESSIBILITY_TESTING.md)** - Testing procedures
+- **[Accessibility Quick Checklist](./ACCESSIBILITY_QUICK_CHECKLIST.md)** - Daily reference
+- **[Accessibility Implementation](./ACCESSIBILITY_IMPLEMENTATION_SUMMARY.md)** - Implementation guide
+- **[Accessibility Audit Complete](./ACCESSIBILITY_AUDIT_COMPLETE.md)** - Audit completion report
 
-### 📝 [Implementation Summary](./ACCESSIBILITY_IMPLEMENTATION_SUMMARY.md)
-**What was implemented and how to use it**
+### Performance
+- **[Performance Optimization Report](./PERFORMANCE_OPTIMIZATION_REPORT.md)** - Full optimization analysis
+- **[Performance Optimization Complete](./PERFORMANCE_OPTIMIZATION_COMPLETE.md)** - Completion summary
+- **[Performance Metrics](./PERFORMANCE_METRICS_SUMMARY.md)** - Performance metrics
+- **[Performance Quick Start](./PERFORMANCE_QUICK_START.md)** - Quick optimization guide
+- **[React Performance Optimizations](./REACT_PERFORMANCE_OPTIMIZATIONS.md)** - React-specific optimizations
 
-- **Length**: 900 lines
-- **Scope**: Complete implementation overview
-- **Contents**:
-  - What was implemented (9 major improvements)
-  - Files created and modified
-  - Code examples and patterns
-  - Color contrast verification
-  - Senior-friendly enhancements
-  - Testing results
-  - Usage guide for developers, designers, QA
+### TypeScript & Code Quality
+- **[TypeScript Strict Mode Migration](./TYPESCRIPT_STRICT_MODE_MIGRATION.md)** - Migration guide
+- **[Strict Mode Changes](./STRICT_MODE_CHANGES_SUMMARY.md)** - Changes summary
 
-**Who should read this**: Everyone - great starting point
+### Deployment & Configuration
+- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** - Production deployment
+- **[MCP Configuration](./MCP_CONFIGURATION.md)** - MCP server setup
+- **[Setup Supabase MCP](./SETUP_SUPABASE_MCP.md)** - Supabase MCP integration
 
----
-
-## Quick Navigation
-
-### I'm a Developer
-1. Start with **[Implementation Summary](./ACCESSIBILITY_IMPLEMENTATION_SUMMARY.md)** - understand what's been done
-2. Reference **[Quick Checklist](./ACCESSIBILITY_QUICK_CHECKLIST.md)** daily - before every commit
-3. Consult **[Testing Guide](./ACCESSIBILITY_TESTING.MD)** - when testing features
-4. Review **[Audit Report](./WCAG_2.1_AA_AUDIT_REPORT.md)** - for detailed WCAG compliance
-
-### I'm a QA Engineer
-1. Start with **[Testing Guide](./ACCESSIBILITY_TESTING.md)** - learn testing procedures
-2. Use **[Audit Report](./WCAG_2.1_AA_AUDIT_REPORT.md)** - understand compliance status
-3. Reference **[Implementation Summary](./ACCESSIBILITY_IMPLEMENTATION_SUMMARY.md)** - verify implementations
-4. Use **[Quick Checklist](./ACCESSIBILITY_QUICK_CHECKLIST.md)** - rapid validation
-
-### I'm a Designer
-1. Read **[Implementation Summary](./ACCESSIBILITY_IMPLEMENTATION_SUMMARY.md)** - color contrast and design patterns
-2. Check **[Audit Report](./WCAG_2.1_AA_AUDIT_REPORT.md)** - color contrast table, design requirements
-3. Reference **[Quick Checklist](./ACCESSIBILITY_QUICK_CHECKLIST.md)** - design do's and don'ts
-
-### I'm a Stakeholder/Manager
-1. Read **[Audit Report](./WCAG_2.1_AA_AUDIT_REPORT.md)** - executive summary and compliance status
-2. Review **[Implementation Summary](./ACCESSIBILITY_IMPLEMENTATION_SUMMARY.md)** - what was delivered
+### API & Integration
+- **[API Documentation](./API_DOCUMENTATION.md)** - Complete API reference
+- **[Changelog](./CHANGELOG.md)** - Version history and changes
 
 ---
 
-## Key Achievements
+## 🚀 Quick Start Paths
 
-### ✅ WCAG 2.1 Level AA Compliance: 95%
+### New Developer
+1. [Setup Guide](./SETUP_GUIDE.md) - Get your environment running
+2. [Developer Guide](./DEVELOPER_GUIDE.md) - Understand the codebase
+3. [Authentication Quickstart](./AUTHENTICATION_QUICKSTART.md) - Learn auth basics
+4. [Troubleshooting](./TROUBLESHOOTING.md) - Bookmark this for issues
 
-| Category | Score |
-|----------|-------|
-| Perceivable | 95% |
-| Operable | 98% |
-| Understandable | 92% |
-| Robust | 96% |
+### QA Engineer
+1. [Testing Guide](./TESTING.md) - Testing methodology
+2. [Accessibility Testing](./ACCESSIBILITY_TESTING.md) - A11y testing procedures
+3. [Security Checklist](./SECURITY_CHECKLIST.md) - Security validation
 
-### ✅ Senior-Friendly Enhancements (Level AAA)
+### DevOps Engineer
+1. [Deployment Guide](./DEPLOYMENT_GUIDE.md) - Production setup
+2. [Database Setup Guide](./DATABASE_SETUP_GUIDE.md) - Database configuration
+3. [MCP Configuration](./MCP_CONFIGURATION.md) - Infrastructure
 
-- **Large Font Sizes**: 18px base (vs standard 16px)
-- **High Contrast**: 11.2:1 for body text (exceeds 4.5:1 minimum)
-- **Large Touch Targets**: 44x44px minimum (Level AAA)
-- **Reduced Motion**: Full support for prefers-reduced-motion
-- **Clear Language**: Simple, jargon-free content
-
----
-
-## Component Implementations
-
-### New Components
-- **SkipNavigation** (`/src/components/SkipNavigation.tsx`)
-  - Keyboard accessible skip to main content
-  - Visible on Tab focus
-  - High contrast styling
-
-### Enhanced Components
-- **Navigation** - ARIA labels, proper landmarks
-- **Hero** - Detailed alt text, semantic structure
-- **ChatInterface** - Live regions, form accessibility
-- **Dashboard** - Regions, articles, status indicators
-- **Index** - Skip navigation integration
-
-### CSS Enhancements
-- Focus-visible styles (3px coral outline)
-- Prefers-reduced-motion support
-- High contrast mode support
-- Screen reader only utility (.sr-only)
+### Security Auditor
+1. [Security Audit Report](./SECURITY_AUDIT_REPORT.md) - Security status
+2. [RLS Implementation](./RLS_IMPLEMENTATION_SUMMARY.md) - Database security
+3. [Authentication Documentation](./AUTHENTICATION.md) - Auth security
 
 ---
 
-## Testing Tools
+## 📊 Project Status
 
-### Automated
-- **axe DevTools** (browser extension) - 0 violations
-- **Lighthouse** (Chrome DevTools) - 98/100 score
-- **WAVE** (browser extension) - 0 errors
-- **pa11y** (CLI) - Command line testing
+### WCAG 2.1 Level AA Compliance: 95%
+- Perceivable: 95%
+- Operable: 98%
+- Understandable: 92%
+- Robust: 96%
 
-### Manual
-- **Keyboard Navigation** - Tab, Shift+Tab, Enter, Space, Escape
-- **Screen Readers** - NVDA (Windows), VoiceOver (macOS)
-- **Zoom Testing** - 100%, 200%, 400%
-- **Color Contrast** - WebAIM Contrast Checker
+### Security Status
+- ✅ Row Level Security (RLS) enabled
+- ✅ Input validation with Zod schemas
+- ✅ Rate limiting implemented
+- ✅ XSS protection in place
+- ⚠️ API keys in git history (requires rotation)
 
----
-
-## Quick Commands
-
-```bash
-# Run accessibility tests
-npm run test:a11y
-
-# Lint for accessibility issues
-npm run lint:a11y
-
-# Run Lighthouse audit
-npm run audit:lighthouse
-
-# Test with pa11y
-npx pa11y http://localhost:5173/
-npx pa11y http://localhost:5173/dashboard
-```
+### Test Coverage
+- Unit Tests: Configured with Vitest
+- Integration Tests: In progress
+- E2E Tests: Planned
 
 ---
 
-## Color Contrast Reference
+## 🔗 External Resources
 
-All combinations meet WCAG 2.1 Level AA (most exceed to AAA):
+### Supabase
+- [Supabase Dashboard](https://app.supabase.com)
+- [Supabase Docs](https://supabase.com/docs)
+- [Supabase Auth](https://supabase.com/docs/guides/auth)
 
-| Element | Foreground | Background | Ratio | Status |
-|---------|-----------|------------|-------|--------|
-| Body Text | #2F4733 | #FFFFFF | 11.2:1 | ✅ AAA |
-| Headings | #2F4733 | #FFFFFF | 11.2:1 | ✅ AAA |
-| Buttons | #2F4733 | #C9EBC0 | 4.8:1 | ✅ AA |
-| Links | #2F4733 | #FFFFFF | 11.2:1 | ✅ AAA |
-| Focus | #FF8882 | #FFFFFF | 3.2:1 | ✅ AA |
-| Status OK | #2F4733 | #C9EBC0 | 4.8:1 | ✅ AA |
-| Status Warning | #2F4733 | #FFEBA1 | 8.5:1 | ✅ AAA |
-| Status Alert | #2F4733 | #FF8882 | 3.2:1 | ✅ AA |
+### React & TypeScript
+- [React 18 Docs](https://react.dev)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [Vite Documentation](https://vitejs.dev)
 
----
+### UI Components
+- [shadcn/ui](https://ui.shadcn.com)
+- [Radix UI](https://www.radix-ui.com)
+- [Tailwind CSS](https://tailwindcss.com)
 
-## Common Patterns
-
-### Button with Icon
-```tsx
-<button aria-label="Send message">
-  <Send aria-hidden="true" />
-  <span className="sr-only">Send</span>
-</button>
-```
-
-### Image
-```tsx
-<img
-  src={image}
-  alt="Descriptive alt text describing the image content"
-  width="40"
-  height="40"
-/>
-```
-
-### Form Input
-```tsx
-<Label htmlFor="email">Email</Label>
-<Input
-  id="email"
-  type="email"
-  aria-required="true"
-  aria-invalid={!!errors.email}
-  aria-describedby={errors.email ? 'email-error' : undefined}
-/>
-{errors.email && (
-  <p id="email-error" className="text-destructive">
-    {errors.email.message}
-  </p>
-)}
-```
-
-### Page Structure
-```tsx
-import SkipNavigation from "@/components/SkipNavigation";
-
-<SkipNavigation />
-<Navigation />
-<main id="main-content" tabIndex={-1}>
-  <h1>Page Title</h1>
-  {/* Page content */}
-</main>
-<Footer />
-```
-
----
-
-## External Resources
-
-### WCAG Guidelines
-- [WCAG 2.1 Quick Reference](https://www.w3.org/WAI/WCAG21/quickref/)
-- [Understanding WCAG 2.1](https://www.w3.org/WAI/WCAG21/Understanding/)
-- [How to Meet WCAG](https://www.w3.org/WAI/WCAG21/quickref/)
-
-### ARIA Patterns
-- [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
-- [ARIA in HTML](https://www.w3.org/TR/html-aria/)
-- [Using ARIA](https://www.w3.org/TR/using-aria/)
-
-### Testing Tools
+### Accessibility
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [ARIA Practices](https://www.w3.org/WAI/ARIA/apg/)
 - [axe DevTools](https://www.deque.com/axe/devtools/)
-- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
-- [WAVE Browser Extension](https://wave.webaim.org/extension/)
-- [pa11y](https://pa11y.org/)
-
-### Additional Resources
-- [WebAIM Articles](https://webaim.org/articles/)
-- [A11y Project Checklist](https://www.a11yproject.com/checklist/)
-- [Inclusive Design Principles](https://inclusivedesignprinciples.org/)
-- [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
 
 ---
 
-## Support and Contact
+## 📞 Support
 
-### Development Team
-- **Email**: dev@paraconnect.com
-- **Slack**: #accessibility channel
-
-### Accessibility Lead
-- **Email**: accessibility@paraconnect.com
-- **Response Time**: Within 2 business days
-
-### User Support
-- **Email**: support@paraconnect.com
-- **Phone**: 1-800-PARA-CARE (1-800-727-2227)
+For questions or issues:
+1. Check [Troubleshooting Guide](./TROUBLESHOOTING.md)
+2. Review relevant documentation above
+3. Contact the development team
 
 ---
 
-## Compliance Statement
-
-**Para Connect conforms to WCAG 2.1 Level AA** with select Level AAA enhancements.
-
-- **Conformance Level**: WCAG 2.1 Level AA
-- **Compliance Score**: 95%
-- **Last Audit**: October 12, 2025
-- **Next Audit**: January 12, 2026 (Quarterly)
-- **Technologies**: React 18.3.1, TypeScript 5.8.3, Radix UI, Tailwind CSS
-
-### Feedback
-We welcome your feedback on the accessibility of Para Connect. If you encounter any accessibility barriers, please contact us at accessibility@paraconnect.com.
-
----
-
-## Version History
-
-| Date | Version | Changes | Auditor |
-|------|---------|---------|---------|
-| 2025-10-12 | 1.0.0 | Initial comprehensive accessibility implementation | Claude Code |
-
----
-
-## Next Steps
-
-### Immediate (This Sprint)
-- [ ] Fix minor reflow issue at 320px width (1 hour)
-- [ ] Add dynamic page titles for all routes (2 hours)
-- [ ] Set up pa11y-ci in CI/CD pipeline (4 hours)
-
-### Short-term (Next Quarter)
-- [ ] Conduct senior user testing sessions (8-16 hours)
-- [ ] Test with JAWS screen reader (4 hours)
-- [ ] Create accessibility training for team (8 hours)
-- [ ] Implement automated accessibility regression tests (16 hours)
-
-### Long-term (Next Year)
-- [ ] Add multilingual support (Spanish, Chinese)
-- [ ] Implement voice-based navigation
-- [ ] Add customizable interface options
-- [ ] Achieve WCAG 2.2 compliance when finalized
-
----
-
-**Documentation Maintained By**: Para Connect Development Team
-**Last Updated**: October 12, 2025
+**Documentation Maintained By**: Parra Connect Development Team
+**Last Updated**: October 13, 2025
 **Version**: 1.0.0

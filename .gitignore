@@ -29,3 +29,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test and development files with credentials
+test-chat-function.html
+*-test.html
+*.test.html
+
+# Temporary and optimized files
+*.optimized.*
+*_temp.*
+*-temp.*
+
+# AI/ML prompts and notes
+*_REprompt*.md
+m2ai_*.md
+
+# File uploads and temporary assets
+File_uploads_*/
+uploads_temp/
