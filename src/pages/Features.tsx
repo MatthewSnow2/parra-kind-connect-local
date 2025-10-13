@@ -7,7 +7,7 @@ const Features = () => {
   const features = [
     {
       icon: Shield,
-      title: "Fall Detection (No Wearables)",
+      title: "Fall Detection",
       description: "AI detects possible falls based on phone motion and inactivity patterns."
     },
     {
@@ -32,8 +32,8 @@ const Features = () => {
     },
     {
       icon: Phone,
-      title: "Voice Assistant Integration",
-      description: "Alexa and Google Assistant check-in support."
+      title: "WhatsApp Integration",
+      description: "Seamless check-ins and notifications through WhatsApp."
     },
     {
       icon: Lock,

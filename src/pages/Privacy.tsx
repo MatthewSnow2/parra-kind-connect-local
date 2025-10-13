@@ -13,7 +13,7 @@ const Privacy = () => {
               Privacy Policy
             </h1>
             <p className="text-xl text-muted-foreground">
-              Last updated: October 11, 2025
+              Last updated: October 12, 2025
             </p>
           </div>
 
@@ -36,7 +36,7 @@ const Privacy = () => {
                     </p>
                     <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
                       <li>Name, email address, and phone number</li>
-                      <li>Age, relationship to care recipient, and role (caregiver/senior)</li>
+                      <li>Age, relationship to care recipient, and role (caregiver/independent)</li>
                       <li>Emergency contact information</li>
                       <li>Preferences for notifications and communication</li>
                     </ul>
@@ -54,7 +54,7 @@ const Privacy = () => {
                       <li>Self-reported symptoms or concerns</li>
                     </ul>
                     <p className="text-lg leading-relaxed text-muted-foreground mt-2">
-                      <strong>Important:</strong> We do NOT record audio or video. All conversations are text-based transcripts only.
+                      <strong>Important:</strong> We may record audio.
                     </p>
                   </div>
 
@@ -128,11 +128,17 @@ const Privacy = () => {
                     </p>
                     <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
                       <li>Sell or rent your personal information to third parties</li>
-                      <li>Share health data with insurance companies or employers</li>
+                      <li>Share wellness data with insurance companies or employers</li>
                       <li>Use your data for marketing unrelated to our service</li>
                     </ul>
                   </div>
                 </div>
+              </section>
+
+              <section className="bg-muted/30 p-6 rounded-lg">
+                <p className="text-lg leading-relaxed text-muted-foreground">
+                  <strong>Parra Connect is a private conversational diary designed to help users reflect and share daily experiences.</strong> It doesn't diagnose, treat, or claim to improve any medical or mental health conditions. Parra is not offered by, or on behalf of, a healthcare provider.
+                </p>
               </section>
 
               <section>

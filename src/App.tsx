@@ -19,6 +19,14 @@ import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import {
+  AdminDashboard,
+  AdminUsers,
+  AdminCareRelationships,
+  AdminAlerts,
+  AdminAuditLog,
+  AdminSettings,
+} from "./pages/admin";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +98,56 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole={["caregiver", "family_member", "admin"]}>
                   <HistoryView />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/relationships"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminCareRelationships />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/alerts"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminAlerts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit-log"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminAuditLog />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminSettings />
                 </ProtectedRoute>
               }
             />

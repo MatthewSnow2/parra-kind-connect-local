@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import parraLogo from "@/assets/parra-logo.jpg";
+import parraLogo from "@/assets/parra-logo-transparent.png";
 import HamburgerMenu from "@/components/HamburgerMenu";
 
 const Navigation = () => {

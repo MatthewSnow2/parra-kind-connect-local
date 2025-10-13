@@ -1,62 +1,72 @@
 import { Card } from "@/components/ui/card";
-import { MessageSquare, Shield, Heart } from "lucide-react";
+import { Scale, Lock, MessageCircle } from "lucide-react";
 
 const ValueProps = () => {
-  const values = [
-    {
-      icon: MessageSquare,
-      title: "Conversational Care",
-      description: "No apps to learn — seniors chat naturally using WhatsApp or voice assistants.",
-      color: "text-primary"
-    },
-    {
-      icon: Shield,
-      title: "Privacy-First AI",
-      description: "No cameras or invasive sensors. All data processed locally whenever possible.",
-      color: "text-secondary"
-    },
-    {
-      icon: Heart,
-      title: "Family Peace of Mind",
-      description: "Real-time alerts and weekly insights keep everyone connected and reassured.",
-      color: "text-accent"
-    }
-  ];
-
   return (
-    <section className="py-20 bg-card">
+    <section className="py-16" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
-            Why Parra Connect?
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Simple, secure, and centered around what matters most — connection.
+        {/* Introduction text */}
+        <div className="text-center mb-12">
+          <p className="text-lg max-w-4xl mx-auto leading-relaxed" style={{ color: '#2F4733' }}>
+            Parra is a caregiving companion built for dignity and ease. It's designed to help independent seniors and caregivers stay connected, simply and independently, through gentle, conversational AI. Parra offers "no alarms required" technology through familiar tools like WhatsApp.
           </p>
         </div>
-        
-        <div className="grid md:grid-cols-3 gap-8">
-          {values.map((value, index) => (
-            <Card 
-              key={index} 
-              className="p-8 hover:shadow-lg transition-all duration-300 border-2 animate-fade-in"
-              style={{ 
-                animationDelay: `${index * 0.1}s`,
-                backgroundColor: 'hsl(108, 52%, 83%)',
-                borderColor: 'hsl(130, 20%, 24%)'
-              }}
-            >
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ border: '2px solid hsl(130, 20%, 24%)' }}>
-                <value.icon className="h-8 w-8" style={{ color: 'hsl(130, 20%, 24%)' }} />
+
+        {/* Three feature cards */}
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {/* Card 1 - Open Conversation */}
+          <Card
+            className="p-6 rounded-3xl"
+            style={{ backgroundColor: '#2F4733' }}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                <Scale className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-heading font-bold mb-4" style={{ color: 'hsl(130, 20%, 24%)' }}>
-                {value.title}
+              <h3 className="text-xl font-heading font-bold text-white">
+                Open Conversation
               </h3>
-              <p className="text-lg leading-relaxed" style={{ color: 'rgba(47, 71, 51, 0.8)' }}>
-                {value.description}
+              <p className="text-sm text-white opacity-90 leading-relaxed">
+                Parra chats casually, just using natural text. No special commands, No awkward voice interfaces, just conversation.
               </p>
-            </Card>
-          ))}
+            </div>
+          </Card>
+
+          {/* Card 2 - Personal Space */}
+          <Card
+            className="p-6 rounded-3xl"
+            style={{ backgroundColor: '#2F4733' }}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                <Lock className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-heading font-bold text-white">
+                Personal Space
+              </h3>
+              <p className="text-sm text-white opacity-90 leading-relaxed">
+                Everything stays in the user's space. No forced check-ins, just a respectful AI assistant.
+              </p>
+            </div>
+          </Card>
+
+          {/* Card 3 - Gentle Updates */}
+          <Card
+            className="p-6 rounded-3xl"
+            style={{ backgroundColor: '#2F4733' }}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                <MessageCircle className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-heading font-bold text-white">
+                Gentle Updates
+              </h3>
+              <p className="text-sm text-white opacity-90 leading-relaxed">
+                Parra summarizes patterns for caregivers, nothing intrusive, just peace of mind.
+              </p>
+            </div>
+          </Card>
         </div>
       </div>
     </section>

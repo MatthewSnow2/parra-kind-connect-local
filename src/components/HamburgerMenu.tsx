@@ -48,6 +48,18 @@ const HamburgerMenu = () => {
       );
     }
 
+    // Admin-only items
+    if (isAdmin) {
+      protectedItems.push(
+        { label: "Admin Dashboard", path: "/admin" },
+        { label: "Manage Users", path: "/admin/users" },
+        { label: "Care Relationships", path: "/admin/relationships" },
+        { label: "System Alerts", path: "/admin/alerts" },
+        { label: "Audit Log", path: "/admin/audit-log" },
+        { label: "System Settings", path: "/admin/settings" }
+      );
+    }
+
     return protectedItems;
   };
 
