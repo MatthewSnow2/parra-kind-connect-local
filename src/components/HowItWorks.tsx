@@ -17,30 +17,30 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-16" style={{ backgroundColor: '#C8E6C9' }}>
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold" style={{ color: '#2F4733' }}>
+    <section className="py-8 md:py-10" style={{ backgroundColor: '#C8E6C9' }}>
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-heading font-bold" style={{ color: '#2F4733' }}>
             How It Works
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid gap-4 md:gap-5 max-w-2xl mx-auto">
           {steps.map((step, index) => (
             <Card
               key={index}
-              className="p-6 rounded-3xl"
+              className="p-4 md:p-5 rounded-2xl"
               style={{ backgroundColor: '#2F4733' }}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
                 <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shrink-0"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg md:text-xl font-bold shrink-0"
                   style={{ backgroundColor: '#FF6B6B', color: 'white' }}
                 >
                   {step.number}
                 </div>
                 <div>
-                  <h3 className="text-base font-heading font-semibold text-white leading-snug">
+                  <h3 className="text-sm md:text-base font-heading font-semibold text-white leading-snug">
                     {step.title}
                   </h3>
                 </div>
