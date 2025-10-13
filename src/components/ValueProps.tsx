@@ -73,7 +73,7 @@ const ValueProps = () => {
                 Gentle Updates
               </h3>
               <p className="text-xs md:text-sm text-white opacity-90 leading-relaxed">
-                Para understands patterns, sharing insights that help families stay aware.
+                Parra understands patterns, sharing insights that help families stay aware.
               </p>
             </div>
           </Card>

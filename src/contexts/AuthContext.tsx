@@ -1,7 +1,7 @@
 /**
  * Authentication Context and Provider
  *
- * This module provides a secure authentication context for the Para Connect application.
+ * This module provides a secure authentication context for the Parra Connect application.
  * It manages user sessions, authentication state, and role-based access control.
  *
  * Security Features:

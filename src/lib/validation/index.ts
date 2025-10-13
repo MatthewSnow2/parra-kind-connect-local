@@ -2,7 +2,7 @@
  * Validation Library Entry Point
  *
  * Comprehensive input validation and sanitization utilities
- * for the Para Connect application.
+ * for the Parra Connect application.
  *
  * @module validation
  */

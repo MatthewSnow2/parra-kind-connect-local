@@ -29,7 +29,7 @@ const Testimonials = () => {
                 ))}
               </div>
               <p className="text-sm md:text-base leading-relaxed" style={{ color: '#2F4733' }}>
-                I didn't have to install anything new. Para just works through WhatsApp. It keeps us connected in a way that feels natural.
+                I didn't have to install anything new. Parra just works through WhatsApp. It keeps us connected in a way that feels natural.
               </p>
             </div>
           </Card>

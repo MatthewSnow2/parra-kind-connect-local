@@ -459,7 +459,7 @@ export const AdminSettings: React.FC = () => {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label className="text-muted-foreground">System Version</Label>
-                <p className="text-sm font-medium mt-1">Para Connect v1.0.0</p>
+                <p className="text-sm font-medium mt-1">Parra Connect v1.0.0</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">System Status</Label>

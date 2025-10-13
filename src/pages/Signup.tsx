@@ -55,7 +55,7 @@ const roleOptions: { value: UserRole; label: string; description: string }[] = [
   {
     value: 'senior',
     label: 'Senior',
-    description: 'I am using Para Connect for myself',
+    description: 'I am using Parra Connect for myself',
   },
   {
     value: 'caregiver',
@@ -110,22 +110,22 @@ export const Signup = () => {
       const sanitizedDisplayName = data.displayName ? sanitizeText(data.displayName) : undefined;
       const sanitizedPhoneNumber = data.phoneNumber ? sanitizePhoneNumber(data.phoneNumber) : undefined;
 
-      // Check rate limit
-      const rateLimitCheck = checkRateLimit('signup', sanitizedEmail, RATE_LIMITS.SIGNUP);
-
-      if (!rateLimitCheck.allowed) {
-        const rateLimitError = new RateLimitError(
-          'Too many signup attempts',
-          rateLimitCheck.resetIn,
-          rateLimitCheck.remaining
-        );
-        setError(rateLimitError.getUserMessage());
-        return;
-      }
+      // Rate limiting disabled for pre-launch testing
+      // const rateLimitCheck = checkRateLimit('signup', sanitizedEmail, RATE_LIMITS.SIGNUP);
+      //
+      // if (!rateLimitCheck.allowed) {
+      //   const rateLimitError = new RateLimitError(
+      //     'Too many signup attempts',
+      //     rateLimitCheck.resetIn,
+      //     rateLimitCheck.remaining
+      //   );
+      //   setError(rateLimitError.getUserMessage());
+      //   return;
+      // }
 
       try {
-        // Record attempt for rate limiting
-        recordRateLimitedAction('signup', sanitizedEmail);
+        // Rate limiting disabled for pre-launch testing
+        // recordRateLimitedAction('signup', sanitizedEmail);
 
         // Attempt sign up with sanitized data
         const { error: signUpError } = await signUp(sanitizedEmail, data.password, {
@@ -149,7 +149,7 @@ export const Signup = () => {
           navigate('/login', {
             state: {
               message:
-                'Account created successfully! Please check your email to verify your account.',
+                'Account created successfully! You can now sign in.',
             },
           });
         }, 2000);
@@ -171,7 +171,7 @@ export const Signup = () => {
             Create Account
           </CardTitle>
           <CardDescription className="text-center">
-            Join Para Connect to get started
+            Join Parra Connect to get started
           </CardDescription>
         </CardHeader>
 

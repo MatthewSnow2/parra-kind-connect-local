@@ -77,22 +77,22 @@ export const Login = () => {
       // Sanitize email input
       const sanitizedEmail = sanitizeEmail(data.email);
 
-      // Check rate limit
-      const rateLimitCheck = checkRateLimit('login', sanitizedEmail, RATE_LIMITS.LOGIN);
-
-      if (!rateLimitCheck.allowed) {
-        const rateLimitError = new RateLimitError(
-          'Too many login attempts',
-          rateLimitCheck.resetIn,
-          rateLimitCheck.remaining
-        );
-        setError(rateLimitError.getUserMessage());
-        return;
-      }
+      // Rate limiting disabled for pre-launch testing
+      // const rateLimitCheck = checkRateLimit('login', sanitizedEmail, RATE_LIMITS.LOGIN);
+      //
+      // if (!rateLimitCheck.allowed) {
+      //   const rateLimitError = new RateLimitError(
+      //     'Too many login attempts',
+      //     rateLimitCheck.resetIn,
+      //     rateLimitCheck.remaining
+      //   );
+      //   setError(rateLimitError.getUserMessage());
+      //   return;
+      // }
 
       try {
-        // Record attempt for rate limiting
-        recordRateLimitedAction('login', sanitizedEmail);
+        // Rate limiting disabled for pre-launch testing
+        // recordRateLimitedAction('login', sanitizedEmail);
 
         // Attempt sign in with sanitized email
         const { error: signInError } = await signIn(sanitizedEmail, data.password);
@@ -124,7 +124,7 @@ export const Login = () => {
             Welcome Back
           </CardTitle>
           <CardDescription className="text-center">
-            Sign in to your Para Connect account
+            Sign in to your Parra Connect account
           </CardDescription>
         </CardHeader>
 

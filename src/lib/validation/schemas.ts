@@ -1,7 +1,7 @@
 /**
  * Zod Validation Schemas
  *
- * Comprehensive validation schemas for all data models in Para Connect.
+ * Comprehensive validation schemas for all data models in Parra Connect.
  * These schemas enforce strong typing, input validation, and data integrity.
  *
  * Security Features:

@@ -90,7 +90,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             <Link
               to="/admin"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-              aria-label="Para Connect Admin Dashboard Home"
+              aria-label="Parra Connect Admin Dashboard Home"
             >
               <div
                 className="flex h-8 w-8 items-center justify-center rounded-lg font-bold text-white"
@@ -100,7 +100,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 P
               </div>
               <span className="text-lg font-heading font-bold" style={{ color: '#2F4733' }}>
-                Para Connect Admin
+                Parra Connect Admin
               </span>
             </Link>
           </div>
