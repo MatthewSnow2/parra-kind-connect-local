@@ -331,10 +331,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (currentSession?.user) {
           // User signed in - fetch profile
+          console.log('[AUTH] User signed in, fetching profile...');
           const profileData = await fetchProfile(currentSession.user.id);
-          setProfile(profileData);
+
+          if (profileData) {
+            console.log('[AUTH] Profile loaded successfully, setting state');
+            setProfile(profileData);
+          } else {
+            console.error('[AUTH] CRITICAL: Profile is NULL after fetch. User is authenticated but has no profile!');
+            console.error('[AUTH] User ID:', currentSession.user.id);
+            console.error('[AUTH] This usually means RLS policies are blocking the read or profile does not exist.');
+          }
         } else {
           // User signed out - clear profile
+          console.log('[AUTH] User signed out, clearing profile');
           setProfile(null);
         }
 
