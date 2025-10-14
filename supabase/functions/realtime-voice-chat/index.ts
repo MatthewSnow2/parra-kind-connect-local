@@ -8,15 +8,31 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import {
-  hasValidAuth,
-  createUnauthorizedResponse,
-} from "../_shared/validation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+/**
+ * Extract Bearer token from Authorization header
+ */
+function extractAuthToken(req: Request): string | null {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return null;
+  }
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
+/**
+ * Validate request has required authorization
+ */
+function hasValidAuth(req: Request): boolean {
+  const token = extractAuthToken(req);
+  return token !== null && token.length > 0;
+}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -27,7 +43,16 @@ serve(async (req) => {
   try {
     // Validate authentication
     if (!hasValidAuth(req)) {
-      return createUnauthorizedResponse();
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Valid authorization required",
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Check for WebSocket upgrade request
