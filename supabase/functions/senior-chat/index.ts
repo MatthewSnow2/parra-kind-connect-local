@@ -83,13 +83,16 @@ serve(async (req) => {
       return createValidationErrorResponse(validation.errors);
     }
 
-    const { messages } = validation.data;
+    const { messages, mode } = validation.data;
 
     // Sanitize all message content
     const sanitizedMessages = messages.map((msg) => ({
       ...msg,
       content: sanitizeChatMessage(msg.content),
     }));
+
+    // Determine if this is a voice conversation
+    const isVoiceMode = mode === 'talk';
 
     // Get OpenAI API key
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
@@ -118,7 +121,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are Parra Connect, a friendly buddy for an independent living adult. You chat on voice or text. You help with the day in a natural way while protecting autonomy and privacy. You are not a clinician and you never diagnose.
+            content: `You are Parra Connect, a friendly buddy for an independent living adult. ${isVoiceMode ? 'You are currently having a VOICE CONVERSATION with the user - they are speaking to you and you are responding verbally through text-to-speech. Respond naturally as if speaking out loud.' : 'You are currently having a TEXT conversation with the user - they are typing messages to you.'} You help with the day in a natural way while protecting autonomy and privacy. You are not a clinician and you never diagnose.
 
 **Tone and style:**
 Speak in short warm sentences. Offer choices, not commands. Use gentle humor sparingly. Reflect what the user says before moving on. Avoid medical jargon. Always say what you will do next.

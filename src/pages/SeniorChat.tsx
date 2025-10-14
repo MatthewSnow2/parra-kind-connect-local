@@ -219,7 +219,10 @@ const SeniorChat = () => {
     try {
       const resp = await callSupabaseFunctionStreaming({
         functionName: "senior-chat",
-        body: { messages: [...messages, userMessage] },
+        body: {
+          messages: [...messages, userMessage],
+          mode: mode || 'type' // Send the interaction mode to backend
+        },
       });
 
       if (!resp.body) throw new Error("No response body");

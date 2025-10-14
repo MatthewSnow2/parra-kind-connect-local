@@ -50,6 +50,7 @@ export const seniorChatInputSchema = z.object({
   messages: chatMessagesArraySchema,
   patientId: z.string().uuid().optional(),
   context: z.record(z.unknown()).optional(),
+  mode: z.enum(['talk', 'type']).optional(), // Interaction mode: voice or text
 });
 
 /**
