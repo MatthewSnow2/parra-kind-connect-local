@@ -6,8 +6,9 @@ import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import HistoryDetailModal from "@/components/HistoryDetailModal";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2, Menu } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface HistoryEntry {
@@ -84,9 +85,7 @@ const HistoryView = () => {
         <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
-            <button className="p-2">
-              <Menu className="w-8 h-8 text-secondary" />
-            </button>
+            <HamburgerMenu />
           </div>
         </header>
         <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
@@ -103,9 +102,7 @@ const HistoryView = () => {
       <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
-          <button className="p-2">
-            <Menu className="w-8 h-8 text-secondary" />
-          </button>
+          <HamburgerMenu />
         </div>
       </header>
 
