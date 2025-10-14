@@ -113,18 +113,18 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
         throw new Error('Not authenticated');
       }
 
-      // Get Supabase function URL
+      // Get Supabase function URL with auth token as query param
+      // Note: Browsers don't support custom headers in WebSocket connections
       const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/realtime-voice-chat`;
 
       // Convert http:// to ws:// or https:// to wss://
       const wsUrl = functionUrl.replace(/^http/, 'ws');
 
+      // Add auth token as query parameter (browsers don't support WebSocket headers)
+      const wsUrlWithAuth = `${wsUrl}?token=${encodeURIComponent(session.access_token)}`;
+
       // Create WebSocket connection
-      wsRef.current = new WebSocket(wsUrl, [], {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      } as any);
+      wsRef.current = new WebSocket(wsUrlWithAuth);
 
       wsRef.current.onopen = () => {
         console.log('Connected to Realtime API');

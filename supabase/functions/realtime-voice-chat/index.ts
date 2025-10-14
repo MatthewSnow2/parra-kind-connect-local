@@ -15,15 +15,22 @@ const corsHeaders = {
 };
 
 /**
- * Extract Bearer token from Authorization header
+ * Extract Bearer token from Authorization header or query parameter
  */
 function extractAuthToken(req: Request): string | null {
+  // Try Authorization header first
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return null;
+  if (authHeader) {
+    const match = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (match) return match[1];
   }
-  const match = authHeader.match(/^Bearer\s+(.+)$/i);
-  return match ? match[1] : null;
+
+  // Fall back to query parameter (for WebSocket connections from browsers)
+  const url = new URL(req.url);
+  const tokenParam = url.searchParams.get("token");
+  if (tokenParam) return tokenParam;
+
+  return null;
 }
 
 /**
