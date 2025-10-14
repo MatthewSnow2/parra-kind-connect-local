@@ -86,7 +86,7 @@ const RelationshipDialog: React.FC<RelationshipDialogProps> = ({
   const [formData, setFormData] = useState<Partial<CreateRelationshipInput>>({
     patient_id: relationship?.patient_id || '',
     caregiver_id: relationship?.caregiver_id || '',
-    relationship_type: relationship?.relationship_type || 'professional',
+    relationship_type: relationship?.relationship_type || 'primary_caregiver',
     relationship_label: relationship?.relationship_label || '',
     can_view_health_data: relationship?.can_view_health_data ?? true,
     can_receive_alerts: relationship?.can_receive_alerts ?? true,
@@ -221,10 +221,11 @@ const RelationshipDialog: React.FC<RelationshipDialogProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="family">Family</SelectItem>
+                <SelectItem value="primary_caregiver">Primary Caregiver</SelectItem>
+                <SelectItem value="family_member">Family Member</SelectItem>
+                <SelectItem value="healthcare_provider">Healthcare Provider</SelectItem>
                 <SelectItem value="friend">Friend</SelectItem>
-                <SelectItem value="volunteer">Volunteer</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>

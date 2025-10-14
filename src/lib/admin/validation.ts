@@ -75,7 +75,7 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export const createRelationshipSchema = z.object({
   patient_id: uuidSchema,
   caregiver_id: uuidSchema,
-  relationship_type: z.enum(['professional', 'family', 'friend', 'volunteer'], {
+  relationship_type: z.enum(['primary_caregiver', 'family_member', 'healthcare_provider', 'friend', 'other'], {
     errorMap: () => ({ message: 'Invalid relationship type' }),
   }),
   relationship_label: z
@@ -92,7 +92,7 @@ export const createRelationshipSchema = z.object({
 export type CreateRelationshipInput = z.infer<typeof createRelationshipSchema>;
 
 export const updateRelationshipSchema = z.object({
-  relationship_type: z.enum(['professional', 'family', 'friend', 'volunteer']).optional(),
+  relationship_type: z.enum(['primary_caregiver', 'family_member', 'healthcare_provider', 'friend', 'other']).optional(),
   relationship_label: z
     .string()
     .trim()
@@ -160,7 +160,7 @@ export const relationshipFilterSchema = z.object({
   status: z.enum(['active', 'inactive', 'pending']).optional(),
   patientId: uuidSchema.optional(),
   caregiverId: uuidSchema.optional(),
-  relationshipType: z.enum(['professional', 'family', 'friend', 'volunteer']).optional(),
+  relationshipType: z.enum(['primary_caregiver', 'family_member', 'healthcare_provider', 'friend', 'other']).optional(),
   search: z.string().trim().max(100).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
