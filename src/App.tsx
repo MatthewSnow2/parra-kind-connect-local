@@ -59,10 +59,11 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            {/* Chat route - accessible to all authenticated users */}
             <Route
               path="/senior/chat"
               element={
-                <ProtectedRoute requiredRole="senior">
+                <ProtectedRoute>
                   <SeniorChat />
                 </ProtectedRoute>
               }

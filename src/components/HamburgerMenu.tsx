@@ -31,11 +31,13 @@ const HamburgerMenu = () => {
 
     const protectedItems = [...publicItems];
 
+    // Chat available to all authenticated users
+    protectedItems.push({ label: "Chat with Parra", path: "/senior/chat" });
+
     // Senior-specific items
     if (isSenior) {
       protectedItems.push(
         { label: "My Dashboard", path: "/senior/dashboard" },
-        { label: "Chat with Parra", path: "/senior/chat" },
         { label: "My History", path: "/senior/history" }
       );
     }

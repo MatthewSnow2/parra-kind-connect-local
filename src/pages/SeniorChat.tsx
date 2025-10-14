@@ -485,6 +485,14 @@ const SeniorChat = () => {
 
             {/* Input */}
             <div className="border-t border-[#2F4733]/20 p-6">
+              {/* Muted indicator for voice mode */}
+              {mode === "talk" && !isListening && (
+                <div className="mb-3 flex items-center justify-center">
+                  <span className="text-red-600 text-2xl font-bold animate-pulse">
+                    MUTED
+                  </span>
+                </div>
+              )}
               <div className="flex gap-3">
                 {mode === "talk" && (
                   <Button
