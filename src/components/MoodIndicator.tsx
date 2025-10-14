@@ -1,3 +1,7 @@
+import happyIcon from "@/assets/mood/happy.jpg";
+import mehIcon from "@/assets/mood/meh.jpg";
+import sadIcon from "@/assets/mood/sad.jpg";
+
 interface MoodIndicatorProps {
   mood: "happy" | "neutral" | "sad" | "concerned";
   size?: "sm" | "md" | "lg";
@@ -10,16 +14,20 @@ const MoodIndicator = ({ mood, size = "md" }: MoodIndicatorProps) => {
     lg: "w-32 h-32"
   };
 
-  const moodEmojis = {
-    happy: "😊",
-    neutral: "😐",
-    sad: "🙁",
-    concerned: "😟"
+  const moodImages = {
+    happy: happyIcon,
+    neutral: mehIcon,
+    sad: sadIcon,
+    concerned: sadIcon
   };
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full border-4 border-secondary flex items-center justify-center text-4xl bg-background`}>
-      {moodEmojis[mood]}
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden border-4 border-secondary bg-background`}>
+      <img
+        src={moodImages[mood]}
+        alt={`${mood} mood`}
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 };

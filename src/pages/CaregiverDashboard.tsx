@@ -19,12 +19,11 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import Navigation from "@/components/Navigation";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import { Button } from "@/components/ui/button";
-import { Mic, Loader2 } from "lucide-react";
+import { Mic, Loader2, Menu } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { noteTextSchema } from "@/lib/validation/schemas";
@@ -156,7 +155,14 @@ const CaregiverDashboard = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
+        <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+            <button className="p-2">
+              <Menu className="w-8 h-8 text-secondary" />
+            </button>
+          </div>
+        </header>
         <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
         </main>
@@ -168,7 +174,14 @@ const CaregiverDashboard = () => {
   if (!patientId) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
+        <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+            <button className="p-2">
+              <Menu className="w-8 h-8 text-secondary" />
+            </button>
+          </div>
+        </header>
         <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
           <div className="text-center space-y-4 max-w-md">
             <h2 className="text-2xl font-heading font-bold text-secondary">
@@ -186,7 +199,15 @@ const CaregiverDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navigation />
+      {/* Custom Header */}
+      <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+          <button className="p-2">
+            <Menu className="w-8 h-8 text-secondary" />
+          </button>
+        </div>
+      </header>
 
       <main className="flex-1 pt-24 pb-12 px-6">
         <div className="max-w-7xl mx-auto">

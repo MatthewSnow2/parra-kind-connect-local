@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import Navigation from "@/components/Navigation";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import { Button } from "@/components/ui/button";
-import { Mic, Loader2 } from "lucide-react";
+import { Mic, Loader2, Menu } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 const PatientDashboard = () => {
@@ -42,45 +41,6 @@ const PatientDashboard = () => {
     enabled: !!patientId,
   });
 
-  // Type for caregiver notes with joined profile data
-  type CaregiverNoteWithProfile = {
-    id: string;
-    patient_id: string;
-    caregiver_id: string;
-    note_type: string;
-    note_text: string;
-    is_reminder: boolean;
-    reminder_date: string | null;
-    reminder_time: string | null;
-    shared_with_patient: boolean;
-    shared_with_care_team: boolean;
-    created_at: string;
-    updated_at: string;
-    caregiver: {
-      display_name: string | null;
-      full_name: string | null;
-    } | null;
-  };
-
-  // Fetch notes shared with patient
-  const { data: caregiverNotes } = useQuery<CaregiverNoteWithProfile[]>({
-    queryKey: ["patient-notes", patientId],
-    queryFn: async () => {
-      if (!patientId) return [];
-
-      const { data, error } = await supabase
-        .from("caregiver_notes")
-        .select("*, caregiver:profiles!caregiver_notes_caregiver_id_fkey(display_name, full_name)")
-        .eq("patient_id", patientId)
-        .eq("shared_with_patient", true)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-      return data as unknown as CaregiverNoteWithProfile[];
-    },
-    enabled: !!patientId,
-  });
 
   const isLoading = summaryLoading;
 
@@ -97,7 +57,14 @@ const PatientDashboard = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
+        <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+            <button className="p-2">
+              <Menu className="w-8 h-8 text-secondary" />
+            </button>
+          </div>
+        </header>
         <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
         </main>
@@ -107,7 +74,15 @@ const PatientDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navigation />
+      {/* Custom Header */}
+      <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+          <button className="p-2">
+            <Menu className="w-8 h-8 text-secondary" />
+          </button>
+        </div>
+      </header>
 
       <main className="flex-1 pt-24 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
@@ -145,30 +120,19 @@ const PatientDashboard = () => {
               {/* Notes Section */}
               <div>
                 <h2 className="text-2xl font-heading font-bold text-secondary mb-4">
-                  Messages from Your Care Team
+                  Notes
                 </h2>
-                {caregiverNotes && caregiverNotes.length > 0 ? (
-                  <div className="space-y-3">
-                    {caregiverNotes.map((note) => (
-                      <div
-                        key={note.id}
-                        className="p-4 bg-muted/50 rounded-lg border border-secondary/20"
-                      >
-                        <p className="text-sm text-muted-foreground mb-1">
-                          From {note.caregiver?.display_name || note.caregiver?.full_name || 'Your caregiver'}
-                        </p>
-                        <p className="text-lg">{note.note_text}</p>
-                        {note.is_reminder && note.reminder_date && (
-                          <p className="text-sm text-primary mt-2">
-                            Reminder: {new Date(note.reminder_date).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                <div className="relative">
+                  <div className="absolute top-3 left-3 text-secondary">
+                    <Mic className="w-6 h-6" />
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">No messages yet</p>
-                )}
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add your notes here..."
+                    className="pl-12 min-h-[120px] text-lg border-2 border-secondary/30 focus:border-secondary"
+                  />
+                </div>
               </div>
             </div>
           </div>

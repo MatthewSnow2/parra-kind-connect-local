@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import Navigation from "@/components/Navigation";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
+import HistoryDetailModal from "@/components/HistoryDetailModal";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface HistoryEntry {
@@ -80,8 +80,15 @@ const HistoryView = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
+      <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
+        <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+            <button className="p-2">
+              <Menu className="w-8 h-8 text-secondary" />
+            </button>
+          </div>
+        </header>
         <main className="flex-1 pt-24 pb-12 px-6 flex items-center justify-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary" />
         </main>
@@ -89,118 +96,18 @@ const HistoryView = () => {
     );
   }
 
-  if (view === "detail" && selectedEntry) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navigation />
-
-        <main className="flex-1 pt-24 pb-12 px-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Header with date and export */}
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <Input
-                  type="text"
-                  value={selectedEntry.date}
-                  readOnly
-                  className="text-3xl font-heading font-bold w-64 border-b-2 border-secondary bg-transparent"
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleExport}
-                className="w-12 h-12"
-              >
-                <Upload className="w-6 h-6 text-secondary" />
-              </Button>
-            </div>
-
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              {/* Status */}
-              <div>
-                <StatusIndicator status={selectedEntry.status} size="lg" />
-              </div>
-
-              {/* Mood */}
-              <div>
-                <MoodIndicator mood={selectedEntry.mood} size="lg" />
-              </div>
-
-              {/* Interactions */}
-              <div>
-                <InteractionTimeline count={selectedEntry.interactions} />
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="mt-12">
-              <h2 className="text-3xl font-heading font-bold text-secondary mb-6">
-                Summary
-              </h2>
-              <div className="bg-muted rounded-xl p-8">
-                <p className="text-xl text-foreground leading-relaxed">
-                  {selectedEntry.summary}
-                </p>
-              </div>
-            </div>
-
-            {/* Highlights */}
-            {selectedEntry.highlights && selectedEntry.highlights.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-2xl font-heading font-bold text-primary mb-4">
-                  Highlights
-                </h3>
-                <ul className="space-y-2">
-                  {selectedEntry.highlights.map((highlight, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
-                      <span className="text-lg">{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Concerns */}
-            {selectedEntry.concerns && selectedEntry.concerns.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-2xl font-heading font-bold text-alert mb-4">
-                  Concerns
-                </h3>
-                <ul className="space-y-2">
-                  {selectedEntry.concerns.map((concern, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="text-alert mt-1">⚠</span>
-                      <span className="text-lg">{concern}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Back Button */}
-            <div className="mt-8">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setSelectedDate(null)}
-                className="text-lg"
-              >
-                Back to History
-              </Button>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // List view
+  // List view with modal
   return (
-    <div className="min-h-screen bg-primary flex flex-col">
-      <Navigation />
+    <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
+      {/* Custom Header */}
+      <header className="fixed top-0 left-0 right-0 bg-background border-b border-secondary z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-heading font-bold text-secondary">parra</h1>
+          <button className="p-2">
+            <Menu className="w-8 h-8 text-secondary" />
+          </button>
+        </div>
+      </header>
 
       <main className="flex-1 pt-24 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
@@ -264,54 +171,15 @@ const HistoryView = () => {
             </div>
           </div>
 
-          {/* Summary view for Last 14 Days */}
-          {selectedDate && selectedEntry && (
-            <div className="mt-12 bg-background rounded-3xl p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-heading font-bold text-secondary">
-                  Last {timePeriod} Days
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleExport}
-                  className="w-12 h-12"
-                >
-                  <Upload className="w-6 h-6 text-secondary" />
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <div>
-                  <StatusIndicator status={selectedEntry.status} size="lg" />
-                </div>
-                <div>
-                  <MoodIndicator mood={selectedEntry.mood} size="lg" />
-                </div>
-                <div>
-                  <InteractionTimeline count={selectedEntry.interactions} />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-heading font-bold text-secondary mb-4">
-                  Summary
-                </h3>
-                <div className="space-y-2">
-                  <div className="h-1 bg-muted rounded-full" />
-                  <div className="h-1 bg-muted rounded-full" />
-                  <div className="h-1 bg-muted rounded-full" />
-                  <div className="h-1 bg-muted rounded-full" />
-                  <div className="h-1 bg-muted rounded-full" />
-                  <div className="h-1 bg-muted rounded-full" />
-                  <p className="text-lg text-foreground mt-4">
-                    {selectedEntry.summary}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* History Detail Modal */}
+        <HistoryDetailModal
+          entry={selectedEntry}
+          isOpen={!!selectedDate}
+          onClose={() => setSelectedDate(null)}
+          onExport={handleExport}
+        />
       </main>
     </div>
   );
