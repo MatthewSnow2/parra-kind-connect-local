@@ -10,7 +10,7 @@
  * Navigate to /senior/chat to access this page
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { callSupabaseFunctionStreaming } from "@/lib/supabase-functions";
@@ -69,43 +69,58 @@ const SeniorChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Ref to track if we should auto-send
+  const autoSendRef = useRef(false);
+
   // Initialize Web Speech API for voice mode
   useEffect(() => {
     if (mode === 'talk' && 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
 
-      recognition.continuous = false;
+      recognition.continuous = true; // Keep listening continuously
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
       recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
-          .join('');
+        // Get the most recent result
+        const lastResultIndex = event.results.length - 1;
+        const lastResult = event.results[lastResultIndex];
+        const transcript = lastResult[0].transcript;
 
         setTranscript(transcript);
 
-        // If final result, process it
-        if (event.results[0].isFinal) {
+        // If final result, set input and flag for auto-send
+        if (lastResult.isFinal && transcript.trim()) {
           setInput(transcript);
-          setIsListening(false);
+          autoSendRef.current = true;
         }
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        toast({
-          title: "Voice Recognition Error",
-          description: "Unable to recognize speech. Please try again.",
-          variant: "destructive",
-        });
+        // Don't auto-mute on errors, let user control
+        if (event.error === 'no-speech') {
+          // Just log it, don't stop recognition
+          console.log('No speech detected, still listening...');
+        } else {
+          toast({
+            title: "Voice Recognition Error",
+            description: `Error: ${event.error}. Microphone still active.`,
+            variant: "destructive",
+          });
+        }
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // If listening was manually enabled, restart recognition automatically
+        if (isListening) {
+          try {
+            recognition.start();
+          } catch (e) {
+            console.log('Recognition restart failed:', e);
+          }
+        }
       };
 
       recognitionRef.current = recognition;
@@ -116,7 +131,7 @@ const SeniorChat = () => {
         recognitionRef.current.stop();
       }
     };
-  }, [mode, toast]);
+  }, [mode, toast, isListening]);
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
@@ -321,6 +336,14 @@ const SeniorChat = () => {
     await streamChat(userMessage);
     setIsLoading(false);
   };
+
+  // Auto-send effect for voice mode
+  useEffect(() => {
+    if (autoSendRef.current && input.trim() && !isLoading) {
+      autoSendRef.current = false; // Reset flag
+      handleSend();
+    }
+  }, [input, isLoading]);
 
   const handleModeSelect = (selectedMode: 'talk' | 'type') => {
     setSearchParams({ mode: selectedMode });
