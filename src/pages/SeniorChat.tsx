@@ -1,22 +1,17 @@
 /**
  * Senior Chat Component
  *
- * Secure chat interface with comprehensive input validation and sanitization.
- *
- * Security Features:
- * - Message validation using Zod schemas
- * - Input sanitization to prevent XSS
- * - Rate limiting to prevent spam
- * - Secure message storage
- * - Content length limits
- * - User authentication required
+ * Landing page with mode selection and chat interface.
+ * Features two modes:
+ * - Talk: Voice-based interaction
+ * - Type: Text-based interaction
  *
  * @example
  * Navigate to /senior/chat to access this page
  */
 
 import { useState, useRef, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { callSupabaseFunctionStreaming } from "@/lib/supabase-functions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +19,7 @@ import Navigation from "@/components/Navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, Save } from "lucide-react";
+import { Send, Mic, Save, Menu, Type } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { chatMessageSchema, chatMessageObjectSchema, type ChatMessage } from "@/lib/validation/schemas";
@@ -39,7 +34,8 @@ interface Message {
 
 const SeniorChat = () => {
   const [searchParams] = useSearchParams();
-  const mode = searchParams.get("mode") || "type";
+  const navigate = useNavigate();
+  const mode = searchParams.get("mode");
   const { user, profile } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -250,6 +246,71 @@ const SeniorChat = () => {
     setIsLoading(false);
   };
 
+  /**
+   * Handle mode selection from landing page
+   */
+  const handleModeSelect = (selectedMode: 'talk' | 'type') => {
+    navigate(`/senior/chat?mode=${selectedMode}`);
+  };
+
+  /**
+   * If no mode is selected, show landing page
+   */
+  if (!mode) {
+    return (
+      <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
+        {/* Header */}
+        <header className="bg-[#2F4733] py-4 px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-white text-2xl font-bold">parra</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-[#3d5d44]"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+          <h1 className="text-[#2F4733] text-5xl md:text-6xl font-bold mb-16 text-center">
+            Chat with Parra
+          </h1>
+
+          {/* Mode Selection Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+            {/* Talk Card */}
+            <button
+              onClick={() => handleModeSelect('talk')}
+              className="bg-white rounded-3xl p-12 flex flex-col items-center justify-center gap-6 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <div className="w-32 h-32 rounded-full border-4 border-[#2F4733] flex items-center justify-center">
+                <Mic className="w-16 h-16 text-[#2F4733]" />
+              </div>
+              <span className="text-[#2F4733] text-4xl font-semibold">Talk</span>
+            </button>
+
+            {/* Type Card */}
+            <button
+              onClick={() => handleModeSelect('type')}
+              className="bg-white rounded-3xl p-12 flex flex-col items-center justify-center gap-6 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <div className="w-32 h-32 rounded-full border-4 border-[#2F4733] flex items-center justify-center">
+                <Type className="w-16 h-16 text-[#2F4733]" />
+              </div>
+              <span className="text-[#2F4733] text-4xl font-semibold">Type</span>
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  /**
+   * Chat interface (when mode is selected)
+   */
   return (
     <div className="min-h-screen bg-primary flex flex-col">
       <Navigation />

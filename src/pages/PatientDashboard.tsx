@@ -191,7 +191,7 @@ const PatientDashboard = () => {
             <Button
               size="lg"
               className="bg-accent hover:bg-accent/90 text-background text-2xl px-16 py-8 h-auto rounded-3xl"
-              onClick={() => navigate("/senior/chat?mode=type")}
+              onClick={() => navigate("/senior/chat")}
             >
               Chat
             </Button>
