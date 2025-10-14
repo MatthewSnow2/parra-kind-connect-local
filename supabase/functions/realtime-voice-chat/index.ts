@@ -87,16 +87,29 @@ serve(async (req) => {
     // Upgrade the incoming connection to WebSocket
     const { socket: clientSocket, response } = Deno.upgradeWebSocket(req);
 
-    // Connect to OpenAI Realtime API
-    const openaiWs = new WebSocket(
-      "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17",
+    // Connect to OpenAI Realtime API using fetch (Deno's WebSocket doesn't support headers)
+    const openaiResponse = await fetch(
+      "https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17",
       {
         headers: {
           "Authorization": `Bearer ${OPENAI_API_KEY}`,
           "OpenAI-Beta": "realtime=v1",
+          "Upgrade": "websocket",
+          "Connection": "Upgrade",
         },
       }
     );
+
+    if (!openaiResponse.ok) {
+      throw new Error(`OpenAI connection failed: ${openaiResponse.status}`);
+    }
+
+    const openaiWs = openaiResponse.webSocket;
+    if (!openaiWs) {
+      throw new Error("Failed to establish WebSocket connection to OpenAI");
+    }
+
+    openaiWs.accept();
 
     // Handle client -> OpenAI messages
     clientSocket.onmessage = (event) => {
