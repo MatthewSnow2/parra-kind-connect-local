@@ -15,25 +15,202 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import {
-  seniorChatInputSchema,
-  validateInput,
-  sanitizeChatMessage,
-  createValidationErrorResponse,
-  hasValidAuth,
-  createUnauthorizedResponse,
-  isJsonRequest,
-  createInvalidContentTypeResponse,
-  safelyParseJson,
-  checkRateLimit,
-  createRateLimitResponse,
-  extractAuthToken,
-} from "../_shared/validation.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// ============================================================================
+// Validation Schemas
+// ============================================================================
+
+const messageRoleSchema = z.enum(["user", "assistant", "system"], {
+  errorMap: () => ({ message: "Invalid message role" }),
+});
+
+const chatMessageSchema = z.object({
+  role: messageRoleSchema,
+  content: z
+    .string()
+    .trim()
+    .min(1, "Message cannot be empty")
+    .max(2000, "Message must be less than 2,000 characters"),
+  timestamp: z.string().datetime().optional(),
+});
+
+const chatMessagesArraySchema = z
+  .array(chatMessageSchema)
+  .min(1, "At least one message is required")
+  .max(100, "Maximum 100 messages allowed per request");
+
+const seniorChatInputSchema = z.object({
+  messages: chatMessagesArraySchema,
+  patientId: z.string().uuid().optional(),
+  context: z.record(z.unknown()).optional(),
+  mode: z.enum(['talk', 'type']).optional(),
+});
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+function validateInput<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; errors: string[] } {
+  try {
+    const validated = schema.parse(data);
+    return { success: true, data: validated };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors = error.errors.map((err) => {
+        const path = err.path.join(".");
+        return path ? `${path}: ${err.message}` : err.message;
+      });
+      return { success: false, errors };
+    }
+    return { success: false, errors: ["Validation failed"] };
+  }
+}
+
+function sanitizeText(input: string): string {
+  if (typeof input !== "string") return "";
+  let sanitized = input.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, "");
+  sanitized = sanitized.normalize("NFKC");
+  sanitized = sanitized.trim().replace(/\s+/g, " ");
+  return sanitized;
+}
+
+function sanitizeChatMessage(message: string): string {
+  if (typeof message !== "string") return "";
+  let sanitized = sanitizeText(message);
+  sanitized = sanitized.replace(/<[^>]*>/g, "");
+  if (sanitized.length > 2000) {
+    sanitized = sanitized.substring(0, 2000);
+  }
+  return sanitized;
+}
+
+function createValidationErrorResponse(errors: string[], status: number = 400): Response {
+  return new Response(
+    JSON.stringify({
+      error: "Validation failed",
+      details: errors,
+    }),
+    {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
+
+function extractAuthToken(req: Request): string | null {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return null;
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
+function hasValidAuth(req: Request): boolean {
+  const token = extractAuthToken(req);
+  return token !== null && token.length > 0;
+}
+
+function isJsonRequest(req: Request): boolean {
+  const contentType = req.headers.get("Content-Type");
+  return contentType?.includes("application/json") ?? false;
+}
+
+function createInvalidContentTypeResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      error: "Invalid content type",
+      message: "Content-Type must be application/json",
+    }),
+    {
+      status: 415,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
+
+async function safelyParseJson<T = unknown>(req: Request): Promise<T | null> {
+  try {
+    const body = await req.json();
+    return body as T;
+  } catch {
+    return null;
+  }
+}
+
+// Rate limiting storage
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+
+  if (entry && entry.resetAt < now) {
+    rateLimitStore.delete(key);
+  }
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitStore.set(key, {
+      count: 1,
+      resetAt: now + windowMs,
+    });
+    return {
+      allowed: true,
+      remaining: limit - 1,
+      resetIn: windowMs,
+    };
+  }
+
+  entry.count += 1;
+
+  if (entry.count > limit) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetIn: entry.resetAt - now,
+    };
+  }
+
+  return {
+    allowed: true,
+    remaining: limit - entry.count,
+    resetIn: entry.resetAt - now,
+  };
+}
+
+function createRateLimitResponse(resetIn: number): Response {
+  const resetInSeconds = Math.ceil(resetIn / 1000);
+  return new Response(
+    JSON.stringify({
+      error: "Rate limit exceeded",
+      message: `Too many requests. Please try again in ${resetInSeconds} seconds.`,
+      retryAfter: resetInSeconds,
+    }),
+    {
+      status: 429,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+        "Retry-After": resetInSeconds.toString(),
+      },
+    }
+  );
+}
+
+// ============================================================================
+// Main Handler
+// ============================================================================
 
 serve(async (req) => {
   // Handle CORS preflight
