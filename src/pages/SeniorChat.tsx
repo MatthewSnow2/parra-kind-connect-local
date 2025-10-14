@@ -3,7 +3,7 @@
  *
  * Landing page with mode selection and chat interface.
  * Features two modes:
- * - Talk: Voice-based interaction
+ * - Talk: Voice-based interaction using Web Speech API
  * - Type: Text-based interaction
  *
  * @example
@@ -15,15 +15,15 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { callSupabaseFunctionStreaming } from "@/lib/supabase-functions";
 import { useAuth } from "@/contexts/AuthContext";
-import Navigation from "@/components/Navigation";
+import HamburgerMenu from "@/components/HamburgerMenu";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, Save, Menu, Type } from "lucide-react";
+import { Send, Mic, Save, Type as TypeIcon, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import { chatMessageSchema, chatMessageObjectSchema, type ChatMessage } from "@/lib/validation/schemas";
-import { sanitizeChatMessage, sanitizeText } from "@/lib/validation/sanitization";
+import { chatMessageSchema } from "@/lib/validation/schemas";
+import { sanitizeChatMessage } from "@/lib/validation/sanitization";
 import { checkRateLimit, recordRateLimitedAction, RATE_LIMITS } from "@/lib/validation/rate-limiting";
 
 interface Message {
@@ -33,9 +33,9 @@ interface Message {
 }
 
 const SeniorChat = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const mode = searchParams.get("mode");
+  const mode = searchParams.get("mode") as 'talk' | 'type' | null;
   const { user, profile } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -52,6 +52,12 @@ const SeniorChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Voice chat state
+  const [isRecording, setIsRecording] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const recognitionRef = useRef<any>(null);
+
   // Use authenticated user's ID
   const patientId = user?.id;
 
@@ -62,6 +68,81 @@ const SeniorChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Initialize Web Speech API for voice mode
+  useEffect(() => {
+    if (mode === 'talk' && 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+
+        setTranscript(transcript);
+
+        // If final result, process it
+        if (event.results[0].isFinal) {
+          setInput(transcript);
+          setIsListening(false);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast({
+          title: "Voice Recognition Error",
+          description: "Unable to recognize speech. Please try again.",
+          variant: "destructive",
+        });
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [mode, toast]);
+
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      setTranscript("");
+      setInput("");
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
+
+  const speakResponse = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
 
   const saveCheckIn = async () => {
     if (!patientId) {
@@ -81,23 +162,21 @@ const SeniorChat = () => {
         started_at: checkInStarted,
         ended_at: new Date().toISOString(),
         messages: messagesWithTimestamps,
-        sentiment_score: null, // TODO: Add sentiment analysis
-        mood_detected: null, // TODO: Add mood detection
-        topics_discussed: [], // TODO: Extract topics
+        sentiment_score: null,
+        mood_detected: null,
+        topics_discussed: [],
         safety_concern_detected: false,
       };
 
       if (checkInId) {
-        // Update existing check-in
         const { error } = await supabase
           .from("check_ins")
           .update(checkInData)
           .eq("id", checkInId)
-          .eq("patient_id", patientId); // Security: Ensure user owns this check-in
+          .eq("patient_id", patientId);
 
         if (error) throw error;
       } else {
-        // Create new check-in
         const { data, error } = await supabase
           .from("check_ins")
           .insert(checkInData)
@@ -115,17 +194,14 @@ const SeniorChat = () => {
     }
   };
 
-  // Auto-save every 5 messages
   useEffect(() => {
     if (messages.length > 1 && messages.length % 5 === 0) {
       void saveCheckIn();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length]);
 
   const streamChat = async (userMessage: Message) => {
     try {
-      // Use secure function calling with proper authentication
       const resp = await callSupabaseFunctionStreaming({
         functionName: "senior-chat",
         body: { messages: [...messages, userMessage] },
@@ -187,6 +263,11 @@ const SeniorChat = () => {
           }
         }
       }
+
+      // Speak response in voice mode
+      if (mode === 'talk' && assistantContent) {
+        speakResponse(assistantContent);
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -200,10 +281,8 @@ const SeniorChat = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading || !user?.id) return;
 
-    // Validate message length
     const trimmedInput = input.trim();
 
-    // Validate with Zod schema
     const validation = chatMessageSchema.safeParse(trimmedInput);
     if (!validation.success) {
       const errorMessage = validation.error.errors[0]?.message || "Invalid message";
@@ -215,7 +294,6 @@ const SeniorChat = () => {
       return;
     }
 
-    // Check rate limit
     const rateLimitCheck = checkRateLimit('chat_message', user.id, RATE_LIMITS.CHAT_MESSAGE);
     if (!rateLimitCheck.allowed) {
       toast({
@@ -226,10 +304,7 @@ const SeniorChat = () => {
       return;
     }
 
-    // Sanitize message content
     const sanitizedContent = sanitizeChatMessage(validation.data);
-
-    // Record rate limit action
     recordRateLimitedAction('chat_message', user.id);
 
     const userMessage: Message = {
@@ -240,48 +315,40 @@ const SeniorChat = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setTranscript("");
     setIsLoading(true);
 
     await streamChat(userMessage);
     setIsLoading(false);
   };
 
-  /**
-   * Handle mode selection from landing page
-   */
   const handleModeSelect = (selectedMode: 'talk' | 'type') => {
-    navigate(`/senior/chat?mode=${selectedMode}`);
+    setSearchParams({ mode: selectedMode });
   };
 
-  /**
-   * If no mode is selected, show landing page
-   */
+  const handleModeSwitchClick = (selectedMode: 'talk' | 'type') => {
+    if (selectedMode !== mode) {
+      setSearchParams({ mode: selectedMode });
+    }
+  };
+
+  // Landing page (no mode selected)
   if (!mode) {
     return (
       <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
-        {/* Header */}
-        <header className="bg-[#2F4733] py-4 px-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-white text-2xl font-bold">parra</span>
+        <header className="fixed top-0 left-0 right-0 bg-[#2F4733] z-50 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <h1 className="text-3xl font-heading font-bold text-white">parra</h1>
+            <HamburgerMenu />
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-[#3d5d44]"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 pt-32">
           <h1 className="text-[#2F4733] text-5xl md:text-6xl font-bold mb-16 text-center">
             Chat with Parra
           </h1>
 
-          {/* Mode Selection Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
-            {/* Talk Card */}
             <button
               onClick={() => handleModeSelect('talk')}
               className="bg-white rounded-3xl p-12 flex flex-col items-center justify-center gap-6 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
@@ -292,13 +359,12 @@ const SeniorChat = () => {
               <span className="text-[#2F4733] text-4xl font-semibold">Talk</span>
             </button>
 
-            {/* Type Card */}
             <button
               onClick={() => handleModeSelect('type')}
               className="bg-white rounded-3xl p-12 flex flex-col items-center justify-center gap-6 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
             >
               <div className="w-32 h-32 rounded-full border-4 border-[#2F4733] flex items-center justify-center">
-                <Type className="w-16 h-16 text-[#2F4733]" />
+                <TypeIcon className="w-16 h-16 text-[#2F4733]" />
               </div>
               <span className="text-[#2F4733] text-4xl font-semibold">Type</span>
             </button>
@@ -308,32 +374,68 @@ const SeniorChat = () => {
     );
   }
 
-  /**
-   * Chat interface (when mode is selected)
-   */
+  // Chat interface with mode selected
   return (
-    <div className="min-h-screen bg-primary flex flex-col">
-      <Navigation />
+    <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
+      {/* Header with mini mode cards */}
+      <header className="fixed top-0 left-0 right-0 bg-[#2F4733] z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-3xl font-heading font-bold text-white">parra</h1>
+
+          <div className="flex items-center gap-3">
+            {/* Mini mode selector cards */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleModeSwitchClick('talk')}
+                className={`bg-white rounded-lg p-2 flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+                  mode === 'talk' ? 'ring-2 ring-[#FF8882]' : 'opacity-70 hover:opacity-100'
+                }`}
+                title="Talk mode"
+              >
+                <div className={`w-8 h-8 rounded-full border-2 ${mode === 'talk' ? 'border-[#FF8882]' : 'border-[#2F4733]'} flex items-center justify-center`}>
+                  <Mic className={`w-4 h-4 ${mode === 'talk' ? 'text-[#FF8882]' : 'text-[#2F4733]'}`} />
+                </div>
+                <span className="text-[#2F4733] text-sm font-semibold pr-2">Talk</span>
+              </button>
+
+              <button
+                onClick={() => handleModeSwitchClick('type')}
+                className={`bg-white rounded-lg p-2 flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+                  mode === 'type' ? 'ring-2 ring-[#FF8882]' : 'opacity-70 hover:opacity-100'
+                }`}
+                title="Type mode"
+              >
+                <div className={`w-8 h-8 rounded-full border-2 ${mode === 'type' ? 'border-[#FF8882]' : 'border-[#2F4733]'} flex items-center justify-center`}>
+                  <TypeIcon className={`w-4 h-4 ${mode === 'type' ? 'text-[#FF8882]' : 'text-[#2F4733]'}`} />
+                </div>
+                <span className="text-[#2F4733] text-sm font-semibold pr-2">Type</span>
+              </button>
+            </div>
+
+            <HamburgerMenu />
+          </div>
+        </div>
+      </header>
 
       <main className="flex-1 pt-24 pb-6 px-6">
         <div className="max-w-4xl mx-auto h-full flex flex-col">
-          <Card className="bg-card flex-1 flex flex-col shadow-xl">
+          <Card className="bg-white flex-1 flex flex-col shadow-xl">
             {/* Chat Header */}
-            <div className="border-b border-primary p-6">
+            <div className="border-b border-[#2F4733]/20 p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-heading font-bold text-secondary mb-2">
+                  <h2 className="text-3xl font-heading font-bold text-[#2F4733] mb-2">
                     Chat with Parra
                   </h2>
-                  <p className="text-lg text-muted-foreground">
-                    {mode === "talk" ? "Voice mode (coming soon - using text for now)" : "Type your message below"}
+                  <p className="text-lg text-[#2F4733]/70">
+                    {mode === "talk" ? "🎤 Voice mode - Speak or type" : "⌨️ Text mode - Type your message"}
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   size="lg"
                   onClick={saveCheckIn}
-                  className="gap-2"
+                  className="gap-2 border-[#2F4733]"
                   disabled={messages.length <= 1}
                 >
                   <Save className="h-5 w-5" />
@@ -347,13 +449,13 @@ const SeniorChat = () => {
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                 >
                   <div
                     className={`max-w-[80%] rounded-2xl p-4 text-xl ${
                       message.role === "user"
-                        ? "bg-secondary text-background"
-                        : "bg-muted text-foreground"
+                        ? "bg-[#2F4733] text-white"
+                        : "bg-[#C9EBC0] text-[#2F4733]"
                     }`}
                   >
                     {message.content}
@@ -362,12 +464,19 @@ const SeniorChat = () => {
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted rounded-2xl p-4">
+                  <div className="bg-[#C9EBC0] rounded-2xl p-4">
                     <div className="flex gap-2">
-                      <div className="w-3 h-3 bg-secondary rounded-full animate-bounce" />
-                      <div className="w-3 h-3 bg-secondary rounded-full animate-bounce delay-100" />
-                      <div className="w-3 h-3 bg-secondary rounded-full animate-bounce delay-200" />
+                      <div className="w-3 h-3 bg-[#2F4733] rounded-full animate-bounce" />
+                      <div className="w-3 h-3 bg-[#2F4733] rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-3 h-3 bg-[#2F4733] rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
+                  </div>
+                </div>
+              )}
+              {isListening && transcript && (
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] rounded-2xl p-4 text-xl bg-[#2F4733]/30 text-[#2F4733] italic">
+                    {transcript}...
                   </div>
                 </div>
               )}
@@ -375,35 +484,45 @@ const SeniorChat = () => {
             </div>
 
             {/* Input */}
-            <div className="border-t border-primary p-6">
+            <div className="border-t border-[#2F4733]/20 p-6">
               <div className="flex gap-3">
                 {mode === "talk" && (
                   <Button
                     size="lg"
                     variant="outline"
-                    className="shrink-0 h-14 w-14"
+                    className={`shrink-0 h-14 w-14 border-2 transition-all ${
+                      isListening
+                        ? 'border-[#FF8882] bg-[#FF8882] text-white hover:bg-[#FF8882]/90'
+                        : 'border-[#2F4733] hover:bg-[#2F4733]/10'
+                    }`}
+                    onClick={isListening ? stopListening : startListening}
                     disabled={isLoading}
                   >
-                    <Mic className="h-6 w-6" />
+                    {isListening ? <MicOff className="h-6 w-6 animate-pulse" /> : <Mic className="h-6 w-6" />}
                   </Button>
                 )}
                 <Input
-                  placeholder="Type your message..."
+                  placeholder={mode === 'talk' ? "Listening... or type here" : "Type your message..."}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  className="flex-1 text-xl h-14 px-6"
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                  className="flex-1 text-xl h-14 px-6 border-2 border-[#2F4733]/30 focus:border-[#2F4733]"
                   disabled={isLoading}
                 />
                 <Button
                   size="lg"
                   onClick={handleSend}
                   disabled={isLoading || !input.trim()}
-                  className="h-14 px-8 bg-accent hover:bg-accent/90"
+                  className="h-14 px-8 bg-[#FF8882] hover:bg-[#FF8882]/90 text-white"
                 >
                   <Send className="h-6 w-6" />
                 </Button>
               </div>
+              {mode === 'talk' && !('webkitSpeechRecognition' in window) && (
+                <p className="text-sm text-[#FF8882] mt-2">
+                  Voice recognition is not supported in your browser. Please use Chrome or Edge.
+                </p>
+              )}
             </div>
           </Card>
         </div>
