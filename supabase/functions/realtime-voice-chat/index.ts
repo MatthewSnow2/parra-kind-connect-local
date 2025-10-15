@@ -8,6 +8,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import WebSocket from "npm:ws@8.18.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,13 +88,16 @@ serve(async (req) => {
     // Upgrade the incoming connection to WebSocket
     const { socket: clientSocket, response } = Deno.upgradeWebSocket(req);
 
-    // Connect to OpenAI Realtime API
-    // Note: We pass auth via URL since Deno WebSocket doesn't support headers
-    const openaiUrl = `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`;
-
-    // Create WebSocket with auth via subprotocol (OpenAI Realtime API specific pattern)
-    const authProtocol = `realtime-v1.bearer.${OPENAI_API_KEY}`;
-    const openaiWs = new WebSocket(openaiUrl, [authProtocol]);
+    // Connect to OpenAI Realtime API using ws library (supports headers)
+    const openaiWs = new WebSocket(
+      "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17",
+      {
+        headers: {
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+          "OpenAI-Beta": "realtime=v1",
+        },
+      }
+    );
 
     // Handle client -> OpenAI messages
     clientSocket.onmessage = (event) => {
