@@ -72,7 +72,7 @@ wss.on('connection', (clientWs, request) => {
 
   try {
     // Connect to OpenAI Realtime API with proper Authorization header
-    const openaiUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
+    const openaiUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview';
 
     console.log(`🔗 [${connectionId}] Connecting to OpenAI Realtime API...`);
 
