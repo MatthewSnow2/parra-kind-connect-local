@@ -128,10 +128,10 @@ export const useVoiceChat = (options: UseVoiceChatOptions = {}) => {
         formData.append('history', JSON.stringify(conversationHistoryRef.current));
       }
 
-      console.log('📤 Sending to voice-chat function...');
+      console.log('📤 Sending to quick-service function...');
 
-      // Call voice-chat edge function
-      const { data, error: functionError } = await supabase.functions.invoke('voice-chat', {
+      // Call quick-service edge function (voice chat pipeline)
+      const { data, error: functionError } = await supabase.functions.invoke('quick-service', {
         body: formData,
       });
 
