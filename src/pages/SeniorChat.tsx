@@ -143,7 +143,8 @@ const SeniorChat = () => {
         realtimeDisconnect();
       };
     }
-  }, [mode, useRealtimeAPI, realtimeConnect, realtimeDisconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, useRealtimeAPI]);
 
   // Initialize Web Speech API for voice mode (FALLBACK - not used with Realtime)
   useEffect(() => {
