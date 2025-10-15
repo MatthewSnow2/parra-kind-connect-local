@@ -344,7 +344,8 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
     return () => {
       disconnect();
     };
-  }, [disconnect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     isConnected,
