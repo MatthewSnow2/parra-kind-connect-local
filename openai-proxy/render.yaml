@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: openai-realtime-proxy
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+        # Set this in Render dashboard: Settings -> Environment Variables
+      - key: PORT
+        value: 10000
+        # Render uses port 10000 by default for web services
+      - key: ALLOWED_ORIGINS
+        sync: false
+        # Set to your frontend domain in Render dashboard

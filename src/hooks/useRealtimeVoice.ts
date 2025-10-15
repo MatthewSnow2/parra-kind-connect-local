@@ -29,7 +29,6 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
   const playbackQueueRef = useRef<Int16Array[]>([]);
   const isPlayingRef = useRef(false);
   const isConnectingRef = useRef(false); // Guard against multiple connections
-  const apiKeyRef = useRef<string | null>(null); // Cache API key
 
   // Initialize audio context
   const initAudioContext = useCallback(async () => {
@@ -106,7 +105,7 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
     setIsSpeaking(false);
   };
 
-  // Connect to Realtime API
+  // Connect to Realtime API via proxy server
   const connect = useCallback(async () => {
     // Guard against multiple simultaneous connection attempts
     if (isConnectingRef.current || (wsRef.current && wsRef.current.readyState === WebSocket.OPEN)) {
@@ -123,51 +122,24 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
         throw new Error('Not authenticated');
       }
 
-      // Get or reuse cached API key
-      let apiKey = apiKeyRef.current;
+      console.log('Connecting to voice proxy server...');
 
-      if (!apiKey) {
-        console.log('Requesting OpenAI API key from backend...');
-        const keyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-openai-key`, {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        });
+      // Connect to proxy server with Supabase token
+      // IMPORTANT: Update this URL after deploying to Render
+      const PROXY_URL = import.meta.env.VITE_REALTIME_PROXY_URL || 'ws://localhost:8080';
+      const wsUrl = `${PROXY_URL}?token=${session.access_token}`;
 
-        if (!keyResponse.ok) {
-          const error = await keyResponse.json();
-          throw new Error(error.message || 'Failed to get API key');
-        }
-
-        const keyData = await keyResponse.json();
-        apiKey = keyData.apiKey;
-        apiKeyRef.current = apiKey; // Cache the key
-        console.log('Received and cached API key');
-      } else {
-        console.log('Using cached API key');
-      }
-
-      console.log('Connecting to OpenAI Realtime API...');
-
-      // Connect directly to OpenAI Realtime API
-      // NOTE: Browser WebSocket doesn't support headers, trying subprotocol auth
-      const wsUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
-
-      // Try passing API key via query parameter
-      const wsUrlWithKey = `${wsUrl}&api_key=${apiKey}`;
-
-      // Create WebSocket connection
-      wsRef.current = new WebSocket(wsUrlWithKey);
+      // Create WebSocket connection to proxy
+      wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('✅ Connected to OpenAI Realtime API');
+        console.log('✅ Connected to voice proxy server');
         setIsConnected(true);
         setError(null);
         isConnectingRef.current = false;
       };
 
       wsRef.current.onmessage = async (event) => {
-        console.log('Received message from OpenAI:', event.data);
         try {
           const data = JSON.parse(event.data);
 

@@ -1,0 +1,21 @@
+{
+  "name": "openai-realtime-proxy",
+  "version": "1.0.0",
+  "description": "WebSocket proxy for OpenAI Realtime API with authentication headers",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["websocket", "proxy", "openai", "realtime"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
