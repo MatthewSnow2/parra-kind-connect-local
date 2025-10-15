@@ -113,18 +113,33 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
         throw new Error('Not authenticated');
       }
 
-      // Get Supabase function URL with auth token as query param
-      // Note: Browsers don't support custom headers in WebSocket connections
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/realtime-voice-chat`;
+      // Get OpenAI API key from backend
+      console.log('Requesting OpenAI API key from backend...');
+      const keyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-openai-key`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
 
-      // Convert http:// to ws:// or https:// to wss://
-      const wsUrl = functionUrl.replace(/^http/, 'ws');
+      if (!keyResponse.ok) {
+        const error = await keyResponse.json();
+        throw new Error(error.message || 'Failed to get API key');
+      }
 
-      // Add auth token as query parameter (browsers don't support WebSocket headers)
-      const wsUrlWithAuth = `${wsUrl}?token=${encodeURIComponent(session.access_token)}`;
+      const { apiKey } = await keyResponse.json();
+      console.log('Received API key, connecting to OpenAI Realtime API...');
+
+      // Connect directly to OpenAI Realtime API
+      // Using WebSocket subprotocol for authentication (OpenAI standard)
+      const wsUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
+      const protocols = [
+        'realtime',
+        `openai-insecure-api-key.${apiKey}`,
+        'openai-beta.realtime-v1',
+      ];
 
       // Create WebSocket connection
-      wsRef.current = new WebSocket(wsUrlWithAuth);
+      wsRef.current = new WebSocket(wsUrl, protocols);
 
       wsRef.current.onopen = () => {
         console.log('Connected to Realtime API');

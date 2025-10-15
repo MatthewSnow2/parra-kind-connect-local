@@ -3,5 +3,5 @@ project_id = "xoygyimwkmepwjqmnfxh"
 [functions.senior-chat]
 verify_jwt = false
 
-[functions.realtime-voice-chat]
+[functions.get-openai-key]
 verify_jwt = false
