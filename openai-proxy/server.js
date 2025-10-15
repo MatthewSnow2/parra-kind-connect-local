@@ -102,22 +102,16 @@ wss.on('connection', (clientWs, request) => {
           console.log(`🎉 [${connectionId}] Session created, sending configuration...`);
 
           // Now configure the session with our settings
+          // MINIMAL VERSION - testing with bare minimum config
           const sessionConfig = {
             type: "session.update",
             session: {
               modalities: ["text", "audio"],
               instructions: "You are Parra, a friendly and supportive companion for seniors. Speak warmly and naturally in short sentences. Help with daily wellness through gentle conversation about meals, medications, exercise, and social activities.",
               voice: "alloy",
-              input_audio_format: "pcm16",
-              output_audio_format: "pcm16",
-              input_audio_transcription: {
-                model: "whisper-1",
-              },
+              // Removed input_audio_transcription - may be causing the error
               turn_detection: {
                 type: "server_vad",
-                threshold: 0.5,
-                prefix_padding_ms: 300,
-                silence_duration_ms: 500,
               },
             },
           };
