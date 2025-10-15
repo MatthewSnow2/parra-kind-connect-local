@@ -28,6 +28,8 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const playbackQueueRef = useRef<Int16Array[]>([]);
   const isPlayingRef = useRef(false);
+  const isConnectingRef = useRef(false); // Guard against multiple connections
+  const apiKeyRef = useRef<string | null>(null); // Cache API key
 
   // Initialize audio context
   const initAudioContext = useCallback(async () => {
@@ -106,6 +108,14 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
 
   // Connect to Realtime API
   const connect = useCallback(async () => {
+    // Guard against multiple simultaneous connection attempts
+    if (isConnectingRef.current || (wsRef.current && wsRef.current.readyState === WebSocket.OPEN)) {
+      console.log('Already connecting or connected, skipping...');
+      return;
+    }
+
+    isConnectingRef.current = true;
+
     try {
       // Get auth session
       const { data: { session } } = await supabase.auth.getSession();
@@ -113,41 +123,51 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
         throw new Error('Not authenticated');
       }
 
-      // Get OpenAI API key from backend
-      console.log('Requesting OpenAI API key from backend...');
-      const keyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-openai-key`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
+      // Get or reuse cached API key
+      let apiKey = apiKeyRef.current;
 
-      if (!keyResponse.ok) {
-        const error = await keyResponse.json();
-        throw new Error(error.message || 'Failed to get API key');
+      if (!apiKey) {
+        console.log('Requesting OpenAI API key from backend...');
+        const keyResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-openai-key`, {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (!keyResponse.ok) {
+          const error = await keyResponse.json();
+          throw new Error(error.message || 'Failed to get API key');
+        }
+
+        const keyData = await keyResponse.json();
+        apiKey = keyData.apiKey;
+        apiKeyRef.current = apiKey; // Cache the key
+        console.log('Received and cached API key');
+      } else {
+        console.log('Using cached API key');
       }
 
-      const { apiKey } = await keyResponse.json();
-      console.log('Received API key, connecting to OpenAI Realtime API...');
+      console.log('Connecting to OpenAI Realtime API...');
 
       // Connect directly to OpenAI Realtime API
-      // Using WebSocket subprotocol for authentication (OpenAI standard)
+      // NOTE: Browser WebSocket doesn't support headers, trying subprotocol auth
       const wsUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17';
-      const protocols = [
-        'realtime',
-        `openai-insecure-api-key.${apiKey}`,
-        'openai-beta.realtime-v1',
-      ];
+
+      // Try passing API key via query parameter
+      const wsUrlWithKey = `${wsUrl}&api_key=${apiKey}`;
 
       // Create WebSocket connection
-      wsRef.current = new WebSocket(wsUrl, protocols);
+      wsRef.current = new WebSocket(wsUrlWithKey);
 
       wsRef.current.onopen = () => {
-        console.log('Connected to Realtime API');
+        console.log('✅ Connected to OpenAI Realtime API');
         setIsConnected(true);
         setError(null);
+        isConnectingRef.current = false;
       };
 
       wsRef.current.onmessage = async (event) => {
+        console.log('Received message from OpenAI:', event.data);
         try {
           const data = JSON.parse(event.data);
 
@@ -196,23 +216,31 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
       };
 
       wsRef.current.onerror = (event) => {
-        console.error('WebSocket error:', event);
+        console.error('❌ WebSocket error:', event);
         setError('Connection error');
         setIsConnected(false);
+        isConnectingRef.current = false;
         if (options.onError) {
           options.onError(new Error('WebSocket connection error'));
         }
       };
 
-      wsRef.current.onclose = () => {
-        console.log('WebSocket closed');
+      wsRef.current.onclose = (event) => {
+        console.log('❌ WebSocket closed:', event.code, event.reason);
         setIsConnected(false);
         setIsListening(false);
+        isConnectingRef.current = false;
         stopRecording();
+
+        // Log close details for debugging
+        if (event.code !== 1000) {
+          console.error('Abnormal close. Code:', event.code, 'Reason:', event.reason);
+        }
       };
     } catch (err) {
-      console.error('Connection error:', err);
+      console.error('❌ Connection error:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect');
+      isConnectingRef.current = false;
       if (options.onError) {
         options.onError(err as Error);
       }
