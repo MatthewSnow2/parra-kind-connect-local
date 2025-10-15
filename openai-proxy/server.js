@@ -77,6 +77,7 @@ wss.on('connection', (clientWs, request) => {
 
     console.log(`🔗 [${connectionId}] Connecting to OpenAI Realtime API...`);
     console.log(`🔗 [${connectionId}] Model: gpt-4o-realtime-preview-2024-10-01`);
+    console.log(`🔑 [${connectionId}] API Key (first 20 chars): ${OPENAI_API_KEY.substring(0, 20)}...`);
 
     openaiWs = new WebSocket(openaiUrl, {
       headers: {
@@ -101,14 +102,18 @@ wss.on('connection', (clientWs, request) => {
         if (parsed.type === 'error') {
           console.error(`❌ [${connectionId}] OpenAI error response:`, JSON.stringify(parsed, null, 2));
         } else if (parsed.type === 'session.created') {
-          console.log(`🎉 [${connectionId}] Session created!`);
-          console.log(`📋 [${connectionId}] Session details:`, JSON.stringify(parsed.session, null, 2));
+          const sessionCreatedTime = Date.now();
+          console.log(`🎉 [${connectionId}] Session created at ${new Date(sessionCreatedTime).toISOString()}`);
+          console.log(`📋 [${connectionId}] Session ID: ${parsed.session?.id}`);
+          console.log(`📋 [${connectionId}] Session expires at: ${parsed.session?.expires_at ? new Date(parsed.session.expires_at * 1000).toISOString() : 'unknown'}`);
           console.log(`📋 [${connectionId}] Using default session config (no update sent)`);
 
-          // TEST: Don't send any session.update at all
-          // Use OpenAI's default configuration to isolate the issue
-          // If this works, we know the session.update was the problem
-          // If it still fails, the issue is elsewhere (possibly audio processing)
+          // Log session details for debugging
+          if (parsed.session) {
+            console.log(`📋 [${connectionId}] Modalities: ${parsed.session.modalities?.join(', ')}`);
+            console.log(`📋 [${connectionId}] Voice: ${parsed.session.voice}`);
+            console.log(`📋 [${connectionId}] Turn detection: ${parsed.session.turn_detection?.type}`);
+          }
         }
       } catch (e) {
         // Not JSON, ignore
