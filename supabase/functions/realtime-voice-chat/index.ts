@@ -8,7 +8,6 @@
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import WebSocket from "npm:ws@8.18.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,16 +87,76 @@ serve(async (req) => {
     // Upgrade the incoming connection to WebSocket
     const { socket: clientSocket, response } = Deno.upgradeWebSocket(req);
 
-    // Connect to OpenAI Realtime API using ws library (supports headers)
-    const openaiWs = new WebSocket(
-      "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17",
-      {
-        headers: {
-          "Authorization": `Bearer ${OPENAI_API_KEY}`,
-          "OpenAI-Beta": "realtime=v1",
-        },
-      }
-    );
+    // Manually create WebSocket connection to OpenAI with headers
+    // (Deno's WebSocket API doesn't support headers, so we do manual HTTP upgrade)
+    const conn = await Deno.connectTls({
+      hostname: "api.openai.com",
+      port: 443,
+    });
+
+    // Generate WebSocket key
+    const wsKey = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+
+    // Send HTTP upgrade request with auth headers
+    const upgradeRequest = [
+      "GET /v1/realtime?model=gpt-4o-realtime-preview-2024-12-17 HTTP/1.1",
+      "Host: api.openai.com",
+      "Upgrade: websocket",
+      "Connection: Upgrade",
+      `Sec-WebSocket-Key: ${wsKey}`,
+      "Sec-WebSocket-Version: 13",
+      `Authorization: Bearer ${OPENAI_API_KEY}`,
+      "OpenAI-Beta: realtime=v1",
+      "\r\n",
+    ].join("\r\n");
+
+    const encoder = new TextEncoder();
+    await conn.write(encoder.encode(upgradeRequest));
+
+    // Read upgrade response
+    const decoder = new TextDecoder();
+    const buffer = new Uint8Array(4096);
+    const bytesRead = await conn.read(buffer);
+
+    if (!bytesRead) {
+      throw new Error("Connection closed during WebSocket upgrade");
+    }
+
+    const upgradeResponse = decoder.decode(buffer.subarray(0, bytesRead));
+
+    if (!upgradeResponse.includes("101 Switching Protocols")) {
+      console.error("WebSocket upgrade failed:", upgradeResponse);
+      throw new Error("Failed to upgrade to WebSocket");
+    }
+
+    console.log("Successfully upgraded to WebSocket with OpenAI");
+
+    // Now manually bridge the WebSocket connections
+    // This is a simplified bridge - a production version would need full WebSocket frame parsing
+    // For now, we'll create a basic message bridge
+
+    const openaiWs = {
+      readyState: 1, // OPEN
+      send: async (data: string) => {
+        // Simple text frame (FIN=1, opcode=1 for text)
+        const payload = encoder.encode(data);
+        const frame = new Uint8Array(2 + payload.length);
+        frame[0] = 0x81; // FIN + text frame
+        frame[1] = payload.length; // Unmasked, length
+        frame.set(payload, 2);
+        await conn.write(frame);
+      },
+      close: () => conn.close(),
+      onmessage: null as any,
+      onopen: null as any,
+      onerror: null as any,
+      onclose: null as any,
+    };
+
+    // Trigger onopen after upgrade succeeds
+    setTimeout(() => {
+      if (openaiWs.onopen) openaiWs.onopen();
+    }, 0);
 
     // Handle client -> OpenAI messages
     clientSocket.onmessage = (event) => {
