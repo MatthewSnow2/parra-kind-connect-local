@@ -62,6 +62,12 @@ wss.on('connection', (clientWs, request) => {
   // For MVP, we trust that the token came from authenticated client
   console.log(`✅ [${connectionId}] Auth token validated`);
 
+  // Send immediate acknowledgment to client so they know we're working
+  clientWs.send(JSON.stringify({
+    type: 'proxy.connected',
+    message: 'Proxy server connected, establishing OpenAI connection...',
+  }));
+
   let openaiWs = null;
 
   try {
