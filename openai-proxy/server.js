@@ -143,6 +143,16 @@ Every reply must be short, kind, and concrete. Never invent events or medication
 
     // Proxy messages: OpenAI -> Client
     openaiWs.on('message', (data) => {
+      // Log error messages for debugging
+      try {
+        const parsed = JSON.parse(data.toString());
+        if (parsed.type === 'error') {
+          console.error(`❌ [${connectionId}] OpenAI error response:`, JSON.stringify(parsed, null, 2));
+        }
+      } catch (e) {
+        // Not JSON, ignore
+      }
+
       if (clientWs.readyState === WebSocket.OPEN) {
         clientWs.send(data);
       }
