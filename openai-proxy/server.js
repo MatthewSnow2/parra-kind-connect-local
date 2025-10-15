@@ -72,9 +72,11 @@ wss.on('connection', (clientWs, request) => {
 
   try {
     // Connect to OpenAI Realtime API with proper Authorization header
-    const openaiUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview';
+    // Updated model name to match official OpenAI Realtime API documentation
+    const openaiUrl = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
 
     console.log(`🔗 [${connectionId}] Connecting to OpenAI Realtime API...`);
+    console.log(`🔗 [${connectionId}] Model: gpt-4o-realtime-preview-2024-10-01`);
 
     openaiWs = new WebSocket(openaiUrl, {
       headers: {
@@ -100,6 +102,7 @@ wss.on('connection', (clientWs, request) => {
           console.error(`❌ [${connectionId}] OpenAI error response:`, JSON.stringify(parsed, null, 2));
         } else if (parsed.type === 'session.created') {
           console.log(`🎉 [${connectionId}] Session created!`);
+          console.log(`📋 [${connectionId}] Session details:`, JSON.stringify(parsed.session, null, 2));
           console.log(`📋 [${connectionId}] Using default session config (no update sent)`);
 
           // TEST: Don't send any session.update at all
