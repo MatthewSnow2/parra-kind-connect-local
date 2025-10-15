@@ -99,25 +99,13 @@ wss.on('connection', (clientWs, request) => {
         if (parsed.type === 'error') {
           console.error(`❌ [${connectionId}] OpenAI error response:`, JSON.stringify(parsed, null, 2));
         } else if (parsed.type === 'session.created') {
-          console.log(`🎉 [${connectionId}] Session created, sending configuration...`);
+          console.log(`🎉 [${connectionId}] Session created!`);
+          console.log(`📋 [${connectionId}] Using default session config (no update sent)`);
 
-          // Now configure the session with our settings
-          // MINIMAL VERSION - testing with bare minimum config
-          const sessionConfig = {
-            type: "session.update",
-            session: {
-              modalities: ["text", "audio"],
-              instructions: "You are Parra, a friendly and supportive companion for seniors. Speak warmly and naturally in short sentences. Help with daily wellness through gentle conversation about meals, medications, exercise, and social activities.",
-              voice: "alloy",
-              // Removed input_audio_transcription - may be causing the error
-              turn_detection: {
-                type: "server_vad",
-              },
-            },
-          };
-
-          openaiWs.send(JSON.stringify(sessionConfig));
-          console.log(`📤 [${connectionId}] Sent session configuration to OpenAI`);
+          // TEST: Don't send any session.update at all
+          // Use OpenAI's default configuration to isolate the issue
+          // If this works, we know the session.update was the problem
+          // If it still fails, the issue is elsewhere (possibly audio processing)
         }
       } catch (e) {
         // Not JSON, ignore

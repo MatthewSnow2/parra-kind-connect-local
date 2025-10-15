@@ -252,6 +252,15 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
         },
       });
 
+      // Log actual audio configuration for debugging
+      const audioTrack = stream.getAudioTracks()[0];
+      const settings = audioTrack.getSettings();
+      console.log('🎤 Microphone settings:', {
+        sampleRate: settings.sampleRate,
+        channelCount: settings.channelCount,
+      });
+      console.log('🔊 AudioContext sample rate:', audioContext.sampleRate);
+
       mediaStreamRef.current = stream;
       const source = audioContext.createMediaStreamSource(stream);
 
