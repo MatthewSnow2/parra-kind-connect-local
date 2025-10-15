@@ -221,7 +221,13 @@ serve(async (req) => {
   try {
     // Validate authentication
     if (!hasValidAuth(req)) {
-      return createUnauthorizedResponse();
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Extract user identifier for rate limiting
