@@ -141,6 +141,18 @@ export const useRealtimeVoice = (options: UseRealtimeVoiceOptions = {}) => {
 
       wsRef.current.onmessage = async (event) => {
         try {
+          // Check if message is text (JSON) or binary (Blob)
+          if (typeof event.data !== 'string') {
+            // If it's a Blob, convert to text first
+            if (event.data instanceof Blob) {
+              const text = await event.data.text();
+              event.data = text;
+            } else {
+              // Skip non-text, non-Blob messages
+              return;
+            }
+          }
+
           const data = JSON.parse(event.data);
 
           // Handle different event types
