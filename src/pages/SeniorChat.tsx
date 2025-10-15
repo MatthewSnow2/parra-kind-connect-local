@@ -15,7 +15,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { callSupabaseFunctionStreaming } from "@/lib/supabase-functions";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRealtimeVoice } from "@/hooks/useRealtimeVoice";
+import { useVoiceChat } from "@/hooks/useVoiceChat";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,72 +53,41 @@ const SeniorChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Voice chat state (for browser fallback)
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [currentResponse, setCurrentResponse] = useState("");
-  const recognitionRef = useRef<any>(null);
-
-  // Realtime API voice chat
+  // Voice chat using OpenAI pipeline (Whisper + GPT-4 + TTS)
   const {
-    isConnected: realtimeConnected,
-    isListening: realtimeListening,
-    isSpeaking: realtimeSpeaking,
-    error: realtimeError,
-    connect: realtimeConnect,
-    disconnect: realtimeDisconnect,
-    startListening: realtimeStartListening,
-    stopListening: realtimeStopListening,
-  } = useRealtimeVoice({
-    onTranscript: (text, isFinal) => {
-      if (isFinal) {
-        // Add user message
-        const userMessage: Message = {
-          role: "user",
-          content: text,
-          timestamp: new Date().toISOString()
-        };
-        setMessages((prev) => [...prev, userMessage]);
-        setTranscript("");
-      } else {
-        setTranscript(text);
-      }
+    isRecording,
+    isProcessing,
+    isSpeaking,
+    error: voiceError,
+    startRecording,
+    stopRecording,
+  } = useVoiceChat({
+    onTranscript: (text) => {
+      // Add user message
+      const userMessage: Message = {
+        role: "user",
+        content: text,
+        timestamp: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, userMessage]);
     },
     onResponse: (text) => {
-      setCurrentResponse((prev) => prev + text);
-      // Update or add assistant message
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        const lastMsg = newMessages[newMessages.length - 1];
-
-        if (lastMsg?.role === "assistant" && !lastMsg.content.includes("...")) {
-          newMessages[newMessages.length - 1] = {
-            ...lastMsg,
-            content: lastMsg.content + text,
-          };
-        } else if (lastMsg?.role === "user") {
-          newMessages.push({
-            role: "assistant",
-            content: text,
-            timestamp: new Date().toISOString()
-          });
-        }
-
-        return newMessages;
-      });
+      // Add assistant message
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: text,
+        timestamp: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     },
     onError: (error) => {
       toast({
-        title: "Voice Connection Error",
+        title: "Voice Chat Error",
         description: error.message,
         variant: "destructive",
       });
     },
   });
-
-  // Track if we're using Realtime API or browser fallback
-  const useRealtimeAPI = mode === 'talk';
-  const isListening = useRealtimeAPI ? realtimeListening : isRecording;
 
   // Use authenticated user's ID
   const patientId = user?.id;
@@ -133,109 +102,6 @@ const SeniorChat = () => {
 
   // Ref to track if we should auto-send
   const autoSendRef = useRef(false);
-
-  // Connect to Realtime API when entering Talk mode
-  useEffect(() => {
-    if (mode === 'talk' && useRealtimeAPI) {
-      realtimeConnect();
-
-      return () => {
-        realtimeDisconnect();
-      };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, useRealtimeAPI]);
-
-  // Initialize Web Speech API for voice mode (FALLBACK - not used with Realtime)
-  useEffect(() => {
-    if (mode === 'talk' && !useRealtimeAPI && 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-
-      recognition.continuous = true; // Keep listening continuously
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      recognition.onresult = (event: any) => {
-        // Get the most recent result
-        const lastResultIndex = event.results.length - 1;
-        const lastResult = event.results[lastResultIndex];
-        const transcript = lastResult[0].transcript;
-
-        setTranscript(transcript);
-
-        // If final result, set input and flag for auto-send
-        if (lastResult.isFinal && transcript.trim()) {
-          setInput(transcript);
-          autoSendRef.current = true;
-        }
-      };
-
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        // Don't auto-mute on errors, let user control
-        if (event.error === 'no-speech') {
-          // Just log it, don't stop recognition
-          console.log('No speech detected, still listening...');
-        } else {
-          toast({
-            title: "Voice Recognition Error",
-            description: `Error: ${event.error}. Microphone still active.`,
-            variant: "destructive",
-          });
-        }
-      };
-
-      recognition.onend = () => {
-        // If listening was manually enabled, restart recognition automatically
-        if (isListening) {
-          try {
-            recognition.start();
-          } catch (e) {
-            console.log('Recognition restart failed:', e);
-          }
-        }
-      };
-
-      recognitionRef.current = recognition;
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, [mode, toast, isListening]);
-
-  const startListening = () => {
-    if (useRealtimeAPI) {
-      realtimeStartListening();
-    } else if (recognitionRef.current && !isRecording) {
-      setTranscript("");
-      setInput("");
-      recognitionRef.current.start();
-      setIsRecording(true);
-    }
-  };
-
-  const stopListening = () => {
-    if (useRealtimeAPI) {
-      realtimeStopListening();
-    } else if (recognitionRef.current && isRecording) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const speakResponse = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
 
   const saveCheckIn = async () => {
     if (!patientId) {
@@ -359,11 +225,6 @@ const SeniorChat = () => {
           }
         }
       }
-
-      // Speak response in voice mode
-      if (mode === 'talk' && assistantContent) {
-        speakResponse(assistantContent);
-      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -411,7 +272,6 @@ const SeniorChat = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setTranscript("");
     setIsLoading(true);
 
     await streamChat(userMessage);
@@ -533,9 +393,7 @@ const SeniorChat = () => {
                   </h2>
                   <p className="text-lg text-[#2F4733]/70">
                     {mode === "talk"
-                      ? realtimeConnected
-                        ? "🎤 Voice mode - Connected (OpenAI Realtime)"
-                        : "🎤 Voice mode - Connecting..."
+                      ? "🎤 Voice mode - Ready"
                       : "⌨️ Text mode - Type your message"}
                   </p>
                 </div>
@@ -581,7 +439,15 @@ const SeniorChat = () => {
                   </div>
                 </div>
               )}
-              {realtimeSpeaking && (
+              {isProcessing && (
+                <div className="flex justify-start">
+                  <div className="bg-[#C9EBC0] rounded-2xl p-4 flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#2F4733]" />
+                    <span className="text-[#2F4733] italic">Processing voice...</span>
+                  </div>
+                </div>
+              )}
+              {isSpeaking && (
                 <div className="flex justify-start">
                   <div className="bg-[#C9EBC0] rounded-2xl p-4 flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-[#2F4733]" />
@@ -589,10 +455,11 @@ const SeniorChat = () => {
                   </div>
                 </div>
               )}
-              {isListening && transcript && (
+              {isRecording && (
                 <div className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl p-4 text-xl bg-[#2F4733]/30 text-[#2F4733] italic">
-                    {transcript}...
+                  <div className="max-w-[80%] rounded-2xl p-4 text-xl bg-[#2F4733]/30 text-[#2F4733] italic flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                    Recording...
                   </div>
                 </div>
               )}
@@ -601,25 +468,17 @@ const SeniorChat = () => {
 
             {/* Input */}
             <div className="border-t border-[#2F4733]/20 p-6">
-              {/* Connection status for voice mode */}
-              {mode === "talk" && !realtimeConnected && (
+              {/* Processing indicator for voice mode */}
+              {mode === "talk" && isProcessing && (
                 <div className="mb-3 flex items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin text-[#2F4733]" />
                   <span className="text-[#2F4733] text-lg font-medium">
-                    Connecting to voice service...
-                  </span>
-                </div>
-              )}
-              {/* Muted indicator for voice mode */}
-              {mode === "talk" && realtimeConnected && !isListening && !realtimeSpeaking && (
-                <div className="mb-3 flex items-center justify-center">
-                  <span className="text-red-600 text-2xl font-bold animate-pulse">
-                    MUTED
+                    Processing voice...
                   </span>
                 </div>
               )}
               {/* Parra speaking indicator */}
-              {mode === "talk" && realtimeSpeaking && (
+              {mode === "talk" && isSpeaking && (
                 <div className="mb-3 flex items-center justify-center">
                   <span className="text-[#2F4733] text-xl font-medium flex items-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -633,14 +492,14 @@ const SeniorChat = () => {
                     size="lg"
                     variant="outline"
                     className={`shrink-0 h-14 w-14 border-2 transition-all ${
-                      isListening
+                      isRecording
                         ? 'border-[#FF8882] bg-[#FF8882] text-white hover:bg-[#FF8882]/90'
                         : 'border-[#2F4733] hover:bg-[#2F4733]/10'
                     }`}
-                    onClick={isListening ? stopListening : startListening}
-                    disabled={isLoading || (useRealtimeAPI && !realtimeConnected)}
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={isLoading || isProcessing || isSpeaking}
                   >
-                    {isListening ? <MicOff className="h-6 w-6 animate-pulse" /> : <Mic className="h-6 w-6" />}
+                    {isRecording ? <MicOff className="h-6 w-6 animate-pulse" /> : <Mic className="h-6 w-6" />}
                   </Button>
                 )}
                 <Input
@@ -660,14 +519,9 @@ const SeniorChat = () => {
                   <Send className="h-6 w-6" />
                 </Button>
               </div>
-              {mode === 'talk' && realtimeError && (
+              {mode === 'talk' && voiceError && (
                 <p className="text-sm text-[#FF8882] mt-2">
-                  Voice connection error: {realtimeError}. Please try refreshing the page.
-                </p>
-              )}
-              {mode === 'talk' && !useRealtimeAPI && !('webkitSpeechRecognition' in window) && (
-                <p className="text-sm text-[#FF8882] mt-2">
-                  Voice recognition is not supported in your browser. Please use Chrome or Edge.
+                  Voice error: {voiceError}. Please try again.
                 </p>
               )}
             </div>

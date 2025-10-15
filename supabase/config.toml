@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.get-openai-key]
 verify_jwt = false
+
+[functions.voice-chat]
+verify_jwt = true
