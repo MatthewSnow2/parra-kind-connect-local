@@ -36,7 +36,9 @@ interface Message {
 const SeniorChat = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const mode = searchParams.get("mode") as 'talk' | 'type' | null;
+  // QA: UI/UX fix 2025-10-15 - Default to 'type' mode to remove landing page per design spec
+  const modeParam = searchParams.get("mode") as 'talk' | 'type' | null;
+  const mode = modeParam || 'type'; // Default to type mode if no mode specified
   const { user, profile } = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -296,53 +298,12 @@ const SeniorChat = () => {
     }
   };
 
-  // Landing page (no mode selected)
-  if (!mode) {
-    return (
-      <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
-        <header className="fixed top-0 left-0 right-0 bg-[#2F4733] z-50 px-6 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <h1 className="text-3xl font-heading font-bold text-white">parra</h1>
-            <HamburgerMenu />
-          </div>
-        </header>
-
-        <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 pt-32">
-          <h1 className="text-[#2F4733] text-5xl md:text-6xl font-bold mb-16 text-center">
-            Chat with Parra
-          </h1>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
-            <button
-              onClick={() => handleModeSelect('talk')}
-              className="bg-white rounded-3xl p-12 flex flex-col items-center justify-center gap-6 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
-            >
-              <div className="w-32 h-32 rounded-full border-4 border-[#2F4733] flex items-center justify-center">
-                <Mic className="w-16 h-16 text-[#2F4733]" />
-              </div>
-              <span className="text-[#2F4733] text-4xl font-semibold">Talk</span>
-            </button>
-
-            <button
-              onClick={() => handleModeSelect('type')}
-              className="bg-white rounded-3xl p-12 flex flex-col items-center justify-center gap-6 hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
-            >
-              <div className="w-32 h-32 rounded-full border-4 border-[#2F4733] flex items-center justify-center">
-                <TypeIcon className="w-16 h-16 text-[#2F4733]" />
-              </div>
-              <span className="text-[#2F4733] text-4xl font-semibold">Type</span>
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Chat interface with mode selected
+  // QA: UI/UX REDESIGN 2025-10-15 - Redesigned to match ChatGPT voice interface with dark background and reactive orb
+  // Chat interface renders immediately with default mode
   return (
-    <div className="min-h-screen bg-[#C9EBC0] flex flex-col">
+    <div className="min-h-screen bg-black flex flex-col">
       {/* Header with mini mode cards */}
-      <header className="fixed top-0 left-0 right-0 bg-[#2F4733] z-50 px-6 py-4">
+      <header className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-50 px-6 py-4 border-b border-white/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-heading font-bold text-white">parra</h1>
 
@@ -351,28 +312,28 @@ const SeniorChat = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleModeSwitchClick('talk')}
-                className={`bg-white rounded-lg p-2 flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
-                  mode === 'talk' ? 'ring-2 ring-[#FF8882]' : 'opacity-70 hover:opacity-100'
+                className={`bg-white/10 backdrop-blur rounded-lg p-2 flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+                  mode === 'talk' ? 'ring-2 ring-white/50' : 'opacity-70 hover:opacity-100'
                 }`}
                 title="Talk mode"
               >
-                <div className={`w-8 h-8 rounded-full border-2 ${mode === 'talk' ? 'border-[#FF8882]' : 'border-[#2F4733]'} flex items-center justify-center`}>
-                  <Mic className={`w-4 h-4 ${mode === 'talk' ? 'text-[#FF8882]' : 'text-[#2F4733]'}`} />
+                <div className={`w-8 h-8 rounded-full border-2 ${mode === 'talk' ? 'border-white' : 'border-white/50'} flex items-center justify-center`}>
+                  <Mic className={`w-4 h-4 ${mode === 'talk' ? 'text-white' : 'text-white/70'}`} />
                 </div>
-                <span className="text-[#2F4733] text-sm font-semibold pr-2">Talk</span>
+                <span className="text-white text-sm font-semibold pr-2">Talk</span>
               </button>
 
               <button
                 onClick={() => handleModeSwitchClick('type')}
-                className={`bg-white rounded-lg p-2 flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
-                  mode === 'type' ? 'ring-2 ring-[#FF8882]' : 'opacity-70 hover:opacity-100'
+                className={`bg-white/10 backdrop-blur rounded-lg p-2 flex items-center gap-2 transition-all duration-300 hover:scale-105 ${
+                  mode === 'type' ? 'ring-2 ring-white/50' : 'opacity-70 hover:opacity-100'
                 }`}
                 title="Type mode"
               >
-                <div className={`w-8 h-8 rounded-full border-2 ${mode === 'type' ? 'border-[#FF8882]' : 'border-[#2F4733]'} flex items-center justify-center`}>
-                  <TypeIcon className={`w-4 h-4 ${mode === 'type' ? 'text-[#FF8882]' : 'text-[#2F4733]'}`} />
+                <div className={`w-8 h-8 rounded-full border-2 ${mode === 'type' ? 'border-white' : 'border-white/50'} flex items-center justify-center`}>
+                  <TypeIcon className={`w-4 h-4 ${mode === 'type' ? 'text-white' : 'text-white/70'}`} />
                 </div>
-                <span className="text-[#2F4733] text-sm font-semibold pr-2">Type</span>
+                <span className="text-white text-sm font-semibold pr-2">Type</span>
               </button>
             </div>
 
@@ -381,151 +342,142 @@ const SeniorChat = () => {
         </div>
       </header>
 
-      <main className="flex-1 pt-24 pb-6 px-6">
-        <div className="max-w-4xl mx-auto h-full flex flex-col">
-          <Card className="bg-white flex-1 flex flex-col shadow-xl">
-            {/* Chat Header */}
-            <div className="border-b border-[#2F4733]/20 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-3xl font-heading font-bold text-[#2F4733] mb-2">
-                    Chat with Parra
-                  </h2>
-                  <p className="text-lg text-[#2F4733]/70">
-                    {mode === "talk"
-                      ? "🎤 Voice mode - Ready"
-                      : "⌨️ Text mode - Type your message"}
-                  </p>
+      {/* QA: UI/UX REDESIGN 2025-10-15 - Replaced card-based chat with ChatGPT-style centered orb interface */}
+      <main className="flex-1 pt-24 pb-6 px-6 flex items-center justify-center">
+        <div className="w-full h-full flex flex-col">
+          {/* Reactive Orb Container */}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="relative flex items-center justify-center">
+              {/* Animated reactive orb - scales and glows when active */}
+              <div
+                className={`
+                  w-64 h-64 rounded-full relative
+                  transition-all duration-500 ease-out
+                  ${isRecording || isSpeaking ? 'scale-110 animate-pulse' : 'scale-100'}
+                `}
+                style={{
+                  background: isRecording
+                    ? 'radial-gradient(circle, rgba(255,136,130,1) 0%, rgba(255,136,130,0.6) 50%, rgba(255,136,130,0.2) 100%)'
+                    : isSpeaking
+                    ? 'radial-gradient(circle, rgba(100,200,255,1) 0%, rgba(70,150,255,0.6) 50%, rgba(50,100,200,0.2) 100%)'
+                    : 'radial-gradient(circle, rgba(100,200,255,1) 0%, rgba(70,150,255,0.6) 50%, rgba(50,100,200,0.2) 100%)',
+                  boxShadow: isRecording
+                    ? '0 0 80px rgba(255,136,130,0.8), 0 0 120px rgba(255,136,130,0.4)'
+                    : isSpeaking
+                    ? '0 0 80px rgba(100,200,255,0.8), 0 0 120px rgba(100,200,255,0.4)'
+                    : '0 0 40px rgba(100,200,255,0.5)',
+                }}
+              >
+                {/* Pulsing rings for active states */}
+                {(isRecording || isSpeaking) && (
+                  <>
+                    <div
+                      className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping"
+                      style={{ animationDuration: '2s' }}
+                    />
+                    <div
+                      className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping"
+                      style={{ animationDuration: '3s', animationDelay: '0.5s' }}
+                    />
+                  </>
+                )}
+
+                {/* Status text overlay */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-white text-xl font-medium">
+                    {isRecording && 'Listening...'}
+                    {isSpeaking && 'Speaking...'}
+                    {isProcessing && 'Processing...'}
+                    {!isRecording && !isSpeaking && !isProcessing && mode === 'talk' && 'Tap to speak'}
+                    {!isRecording && !isSpeaking && !isProcessing && mode === 'type' && 'Type below'}
+                  </span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={saveCheckIn}
-                  className="gap-2 border-[#2F4733]"
-                  disabled={messages.length <= 1}
-                >
-                  <Save className="h-5 w-5" />
-                  Save Chat
-                </Button>
               </div>
             </div>
+          </div>
 
-            {/* Messages */}
-            <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl p-4 text-xl ${
-                      message.role === "user"
-                        ? "bg-[#2F4733] text-white"
-                        : "bg-[#C9EBC0] text-[#2F4733]"
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-[#C9EBC0] rounded-2xl p-4">
-                    <div className="flex gap-2">
-                      <div className="w-3 h-3 bg-[#2F4733] rounded-full animate-bounce" />
-                      <div className="w-3 h-3 bg-[#2F4733] rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <div className="w-3 h-3 bg-[#2F4733] rounded-full animate-bounce [animation-delay:0.4s]" />
-                    </div>
-                  </div>
-                </div>
-              )}
-              {isProcessing && (
-                <div className="flex justify-start">
-                  <div className="bg-[#C9EBC0] rounded-2xl p-4 flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#2F4733]" />
-                    <span className="text-[#2F4733] italic">Processing voice...</span>
-                  </div>
-                </div>
-              )}
-              {isSpeaking && (
-                <div className="flex justify-start">
-                  <div className="bg-[#C9EBC0] rounded-2xl p-4 flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#2F4733]" />
-                    <span className="text-[#2F4733] italic">Parra is speaking...</span>
-                  </div>
-                </div>
-              )}
-              {isRecording && (
-                <div className="flex justify-end">
-                  <div className="max-w-[80%] rounded-2xl p-4 text-xl bg-[#2F4733]/30 text-[#2F4733] italic flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
-                    Recording...
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+          {/* Latest message display - minimal */}
+          {messages.length > 0 && (
+            <div className="text-center mb-8 px-4">
+              <p className="text-white/80 text-lg max-w-2xl mx-auto line-clamp-3">
+                {messages[messages.length - 1].content}
+              </p>
             </div>
+          )}
 
-            {/* Input */}
-            <div className="border-t border-[#2F4733]/20 p-6">
-              {/* Processing indicator for voice mode */}
-              {mode === "talk" && isProcessing && (
-                <div className="mb-3 flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#2F4733]" />
-                  <span className="text-[#2F4733] text-lg font-medium">
-                    Processing voice...
-                  </span>
-                </div>
-              )}
-              {/* Parra speaking indicator */}
-              {mode === "talk" && isSpeaking && (
-                <div className="mb-3 flex items-center justify-center">
-                  <span className="text-[#2F4733] text-xl font-medium flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Parra is speaking...
-                  </span>
-                </div>
-              )}
-              <div className="flex gap-3">
-                {mode === "talk" && (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className={`shrink-0 h-14 w-14 border-2 transition-all ${
-                      isRecording
-                        ? 'border-[#FF8882] bg-[#FF8882] text-white hover:bg-[#FF8882]/90'
-                        : 'border-[#2F4733] hover:bg-[#2F4733]/10'
-                    }`}
-                    onClick={isRecording ? stopRecording : startRecording}
-                    disabled={isLoading || isProcessing || isSpeaking}
-                  >
-                    {isRecording ? <MicOff className="h-6 w-6 animate-pulse" /> : <Mic className="h-6 w-6" />}
-                  </Button>
-                )}
+          {/* Bottom Controls - Minimalist ChatGPT style */}
+          <div className="w-full max-w-2xl mx-auto">
+            {mode === "talk" ? (
+              /* Voice Mode Controls */
+              <div className="flex justify-center items-center gap-4 pb-8">
+                <Button
+                  size="lg"
+                  className={`
+                    h-20 w-20 rounded-full border-2 transition-all duration-300
+                    ${isRecording
+                      ? 'bg-red-500 border-red-400 hover:bg-red-600 scale-110'
+                      : 'bg-white/10 border-white/30 hover:bg-white/20 backdrop-blur'
+                    }
+                  `}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading || isProcessing || isSpeaking}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-10 w-10 text-white animate-pulse" />
+                  ) : (
+                    <Mic className="h-10 w-10 text-white" />
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={saveCheckIn}
+                  disabled={messages.length <= 1}
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  <Save className="h-5 w-5 mr-2" />
+                  Save
+                </Button>
+              </div>
+            ) : (
+              /* Type Mode Controls */
+              <div className="flex gap-3 pb-8">
                 <Input
-                  placeholder={mode === 'talk' ? "Listening... or type here" : "Type your message..."}
+                  placeholder="Type your message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  className="flex-1 text-xl h-14 px-6 border-2 border-[#2F4733]/30 focus:border-[#2F4733]"
+                  className="flex-1 text-xl h-14 px-6 bg-white/10 border-2 border-white/20 focus:border-white/40 text-white placeholder:text-white/50 backdrop-blur"
                   disabled={isLoading}
                 />
                 <Button
                   size="lg"
                   onClick={handleSend}
                   disabled={isLoading || !input.trim()}
-                  className="h-14 px-8 bg-[#FF8882] hover:bg-[#FF8882]/90 text-white"
+                  className="h-14 px-8 bg-white/20 hover:bg-white/30 text-white backdrop-blur border border-white/30"
                 >
                   <Send className="h-6 w-6" />
                 </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={saveCheckIn}
+                  disabled={messages.length <= 1}
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                >
+                  <Save className="h-5 w-5" />
+                </Button>
               </div>
-              {mode === 'talk' && voiceError && (
-                <p className="text-sm text-[#FF8882] mt-2">
-                  Voice error: {voiceError}. Please try again.
-                </p>
-              )}
-            </div>
-          </Card>
+            )}
+
+            {/* Error display */}
+            {mode === 'talk' && voiceError && (
+              <p className="text-sm text-red-400 text-center pb-4">
+                Voice error: {voiceError}. Please try again.
+              </p>
+            )}
+          </div>
         </div>
       </main>
     </div>

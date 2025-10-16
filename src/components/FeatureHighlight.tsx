@@ -1,7 +1,8 @@
 const FeatureHighlight = () => {
   return (
     <section className="py-8 md:py-10" style={{ backgroundColor: '#C8E6C9' }}>
-      <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+      {/* QA: UI/UX fix 2025-10-15 - Changed text alignment from left to center per design spec */}
+      <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center">
         <h2 className="text-2xl md:text-3xl font-heading font-bold mb-3 md:mb-4" style={{ color: '#FF6B6B' }}>
           Advanced Fall Detection
         </h2>

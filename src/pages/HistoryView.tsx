@@ -111,35 +111,48 @@ const HistoryView = () => {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Left: Time period selector and date list */}
             <div>
+              {/* QA: UI/UX fix 2025-10-15 - Changed header to "Independent History" and added Export button per design spec */}
               <div className="flex items-center justify-between mb-8">
                 <h1 className="text-5xl font-heading font-bold text-secondary">
-                  History
+                  Independent History
                 </h1>
-                <div className="flex gap-4 text-2xl font-heading font-bold text-secondary">
-                  <button
-                    onClick={() => setTimePeriod(7)}
-                    className={`${timePeriod === 7 ? 'underline' : ''}`}
+                <div className="flex items-center gap-4">
+                  <div className="flex gap-4 text-2xl font-heading font-bold text-secondary">
+                    <button
+                      onClick={() => setTimePeriod(7)}
+                      className={`${timePeriod === 7 ? 'underline' : ''}`}
+                    >
+                      7
+                    </button>
+                    <span>|</span>
+                    <button
+                      onClick={() => setTimePeriod(14)}
+                      className={`${timePeriod === 14 ? 'underline' : ''}`}
+                    >
+                      14
+                    </button>
+                    <span>|</span>
+                    <button
+                      onClick={() => setTimePeriod(30)}
+                      className={`${timePeriod === 30 ? 'underline' : ''}`}
+                    >
+                      30
+                    </button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleExport}
+                    className="gap-2 border-secondary"
                   >
-                    7
-                  </button>
-                  <span>|</span>
-                  <button
-                    onClick={() => setTimePeriod(14)}
-                    className={`${timePeriod === 14 ? 'underline' : ''}`}
-                  >
-                    14
-                  </button>
-                  <span>|</span>
-                  <button
-                    onClick={() => setTimePeriod(30)}
-                    className={`${timePeriod === 30 ? 'underline' : ''}`}
-                  >
-                    30
-                  </button>
+                    <Upload className="h-5 w-5" />
+                    Export
+                  </Button>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              {/* QA: UI/UX fix 2025-10-15 - Increased spacing from 16px to 20px between cards per design spec */}
+              <div className="space-y-5">
                 {historyData.slice(0, timePeriod).map((entry) => (
                   <button
                     key={entry.date}

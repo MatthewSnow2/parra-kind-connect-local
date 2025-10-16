@@ -46,7 +46,8 @@ const HamburgerMenu = () => {
     if (isCaregiver || isFamilyMember || isAdmin) {
       protectedItems.push(
         { label: "Caregiver Dashboard", path: "/dashboard" },
-        { label: "Patient History", path: "/dashboard/history" }
+        // QA: UI/UX fix 2025-10-15 - Changed "Patient History" to "Independent History" per design spec
+        { label: "Independent History", path: "/dashboard/history" }
       );
     }
 
@@ -106,18 +107,11 @@ const HamburgerMenu = () => {
       >
         <div className="flex flex-col h-full">
           {/* Header */}
+          {/* QA: UI/UX fix 2025-10-15 - Removed manual close button to prevent duplicate X (Sheet provides built-in close) */}
           <div className="flex items-center justify-between mb-8 pb-4 border-b border-primary">
             <h2 className="text-2xl font-heading font-bold text-foreground">
               Menu
             </h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              className="h-10 w-10"
-            >
-              <X className="h-6 w-6 text-foreground" />
-            </Button>
           </div>
 
           {/* User Info (if authenticated) */}

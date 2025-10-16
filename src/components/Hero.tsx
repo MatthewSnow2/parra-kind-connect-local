@@ -5,8 +5,10 @@ import { BetaSignupDialog } from "@/components/BetaSignupDialog";
 const Hero = () => {
   return (
     <section
-      className="py-8 md:py-12"
-      style={{ backgroundColor: '#C8E6C9' }}
+      // QA: UI/UX fix 2025-10-15 - Increased top padding by 300px minimum for better text visibility
+      className="pt-80 pb-8 md:pt-96 md:pb-12"
+      // QA: UI/UX fix 2025-10-15 - Changed background to white (#ffffff) per design spec
+      style={{ backgroundColor: '#ffffff' }}
     >
       <div className="container mx-auto px-4 md:px-6 max-w-7xl">
         <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
@@ -21,9 +23,7 @@ const Hero = () => {
               Stay connected.
             </h1>
 
-            <p className="text-sm md:text-base" style={{ color: '#2F4733' }}>
-              Care that balances safety and autonomy.
-            </p>
+            {/* QA: UI/UX fix 2025-10-15 - Removed tagline "Care that balances safety and autonomy" per design spec */}
 
             <BetaSignupDialog>
               <Button

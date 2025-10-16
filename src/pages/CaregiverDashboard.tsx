@@ -278,14 +278,12 @@ const CaregiverDashboard = () => {
           </div>
 
           {/* Analysis Section */}
+          {/* QA: UI/UX fix 2025-10-15 - Removed three green horizontal lines per user request */}
           <div className="border-t border-secondary pt-8 mb-8">
             <h2 className="text-3xl font-heading font-bold text-secondary mb-4">
               Analysis (updated at {lastUpdateTime})
             </h2>
             <div className="space-y-2">
-              <div className="h-1 bg-muted rounded-full" />
-              <div className="h-1 bg-muted rounded-full" />
-              <div className="h-1 bg-muted rounded-full" />
               <p className="text-lg text-foreground mt-4">{analysisText}</p>
             </div>
           </div>

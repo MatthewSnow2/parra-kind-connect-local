@@ -1,21 +1,12 @@
 import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
+// QA: UI/UX fix 2025-10-15 - Removed unused Heart icon import after removing branding section
 
 const Footer = () => {
   return (
     <footer className="bg-secondary text-secondary-foreground py-12">
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          <div>
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <Heart className="h-8 w-8" />
-              <span className="text-2xl font-heading font-bold">Parra Connect</span>
-            </Link>
-            <p className="text-secondary-foreground/80">
-              Caring made simple through conversational AI
-            </p>
-          </div>
-
+        {/* QA: UI/UX fix 2025-10-15 - Removed Parra Connect branding section and changed grid from 4 to 3 columns per design spec */}
+        <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>
             <h3 className="font-heading font-bold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-2">
@@ -48,8 +39,9 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-secondary-foreground/20 pt-8 text-center">
+          {/* QA: UI/UX fix 2025-10-15 - Updated copyright text to reference Claude Code Hackathon per design spec */}
           <p className="text-secondary-foreground/80">
-            Built with ❤️ at the CareConnect Hackathon 2025
+            Built with ❤️ at the Claude Code Hackathon 2025
           </p>
           <p className="text-sm text-secondary-foreground/60 mt-2">
             © 2025 Parra Connect. All rights reserved.

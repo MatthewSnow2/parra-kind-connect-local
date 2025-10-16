@@ -38,8 +38,9 @@ const About = () => {
       <main className="flex-1 pt-24 pb-12">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
-            <Heart className="h-16 w-16 text-primary mx-auto mb-6" />
-            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
+            {/* QA: UI/UX fix 2025-10-15 - Removed heart icon per design spec */}
+            {/* QA: UI/UX fix 2025-10-15 - Changed spacing from mb-4 (16px) to mb-5 (20px) between heading and paragraph */}
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-5">
               Designed by families, for families.
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -51,10 +52,11 @@ const About = () => {
             <h2 className="text-3xl font-heading font-bold text-foreground mb-6 text-center">
               Our Mission
             </h2>
+            {/* QA: UI/UX fix 2025-10-15 - Updated mission text per design spec */}
             <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto text-center">
-              Parra Connect was born from a simple truth: caring for loved ones shouldn't require complicated technology. 
-              We're building tools that honor independence while providing peace of mind — because everyone deserves 
-              to age with dignity, connection, and the support they need.
+              Parra exists to make caregiving simple, respectful, and human. We create tools that help families stay close and informed.
+              Our focus is on independence, peace of mind, and honest communication, so loved ones can age in place with care that
+              feels personal, not clinical.
             </p>
           </Card>
 

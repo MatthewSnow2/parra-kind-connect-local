@@ -9,7 +9,8 @@ const Terms = () => {
       <main className="flex-1 pt-24 pb-12">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
+            {/* QA: UI/UX fix 2025-10-15 - Changed spacing from mb-4 (16px) to mb-5 (20px) between heading and date */}
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-5">
               Terms of Service
             </h1>
             <p className="text-xl text-muted-foreground">

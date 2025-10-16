@@ -30,7 +30,8 @@ import { useValidatedForm, useSecureSubmit } from '@/lib/validation/hooks';
 import { loginSchema, type LoginInput } from '@/lib/validation/schemas';
 import { sanitizeEmail } from '@/lib/validation/sanitization';
 import { checkRateLimit, recordRateLimitedAction, RATE_LIMITS, RateLimitError } from '@/lib/validation/rate-limiting';
-import { useState } from 'react';
+// QA: BUG FIX 2025-10-15 - Added useState and useEffect for profile-based redirect per design spec
+import { useState, useEffect } from 'react';
 
 /**
  * Sanitize error message to prevent information leakage
@@ -52,11 +53,28 @@ const sanitizeErrorMessage = (error: string): string => {
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isLoading } = useAuth();
+  // QA: BUG FIX 2025-10-15 - Added profile to check user role for redirect per design spec
+  const { signIn, isLoading, profile } = useAuth();
 
   // Password visibility state
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // QA: BUG FIX 2025-10-15 - Track if we should redirect after profile loads
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  // QA: BUG FIX 2025-10-15 - Redirect based on user role after profile loads
+  useEffect(() => {
+    if (shouldRedirect && profile) {
+      const from = (location.state as { from?: string })?.from;
+
+      // Redirect seniors to /senior/chat, others to /dashboard or intended destination
+      if (profile.role === 'senior') {
+        navigate(from && from !== '/' ? from : '/senior/chat', { replace: true });
+      } else {
+        navigate(from || '/dashboard', { replace: true });
+      }
+    }
+  }, [shouldRedirect, profile, navigate, location.state]);
 
   // Initialize form with Zod validation
   const form = useValidatedForm<LoginInput>({
@@ -103,9 +121,9 @@ export const Login = () => {
           return;
         }
 
-        // Success - redirect to intended destination or home
-        const from = (location.state as { from?: string })?.from || '/dashboard';
-        navigate(from, { replace: true });
+        // QA: BUG FIX 2025-10-15 - Set flag to trigger redirect after profile loads instead of immediate redirect
+        // This allows us to redirect based on user role (seniors to /senior/chat, others to /dashboard)
+        setShouldRedirect(true);
       } catch (err) {
         console.error('Unexpected login error:', err);
         setError('An unexpected error occurred. Please try again.');

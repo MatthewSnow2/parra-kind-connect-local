@@ -45,10 +45,12 @@ const Features = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
+      {/* QA: UI/UX fix 2025-10-15 - Adjusted padding for proper spacing per design spec */}
       <main className="flex-1 pt-24 pb-12">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
+            {/* QA: UI/UX fix 2025-10-15 - Changed spacing from mb-4 (16px) to mb-5 (20px) between heading and paragraph */}
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-5">
               Smart caregiving — without the gadgets.
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">

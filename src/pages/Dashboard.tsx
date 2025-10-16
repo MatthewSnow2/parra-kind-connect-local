@@ -14,12 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { AlertCircle, CheckCircle2, AlertTriangle, MessageSquare, Bell, FileDown, UserPlus } from "lucide-react";
+import { AlertCircle, CheckCircle2, AlertTriangle, MessageSquare, Bell, FileDown, UserPlus, Info } from "lucide-react";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [alertsCount, setAlertsCount] = useState(1);
+  // QA: UI/UX fix 2025-10-15 - Added state for metric info tooltips per design spec
+  const [showMetricInfo, setShowMetricInfo] = useState<string | null>(null);
   const [newMember, setNewMember] = useState({
     name: "",
     email: "",
@@ -99,6 +101,20 @@ const Dashboard = () => {
     }
   };
 
+  // QA: UI/UX fix 2025-10-15 - Added metric definitions for info buttons per design spec
+  const getMetricDefinition = (metric: string) => {
+    switch(metric) {
+      case "medication":
+        return "Medication adherence tracking shows whether the user has reported taking their prescribed medications as scheduled.";
+      case "activity":
+        return "Activity level indicates daily physical movement and engagement, including walks, exercises, and general mobility.";
+      case "sleep":
+        return "Sleep quality tracking monitors reported sleep patterns, duration, and any disturbances or concerns.";
+      default:
+        return "";
+    }
+  };
+
   const handleRequestReport = () => {
     toast({
       title: "Status Report Requested",
@@ -158,9 +174,10 @@ const Dashboard = () => {
       <Navigation />
       <main id="main-content" className="flex-1 pt-24 pb-12 bg-background" tabIndex={-1}>
         <div className="container mx-auto px-4">
+          {/* QA: UI/UX fix 2025-10-15 - Changed header from "Caregiver Dashboard" to "Dashboard" per design spec */}
           <div className="mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-heading font-bold mb-2" style={{ color: '#2F4733' }}>
-              Caregiver Dashboard
+              Dashboard
             </h1>
             <p className="text-xl" style={{ color: 'rgba(47, 71, 51, 0.7)' }}>
               Family wellness at a glance
@@ -228,17 +245,63 @@ const Dashboard = () => {
                     <span className="text-sm" style={{ color: 'rgba(47, 71, 51, 0.7)' }}>Mood:</span>
                     <span className="text-2xl">{getMoodEmoji(senior.mood)}</span>
                   </div>
+                  {/* QA: UI/UX fix 2025-10-15 - Added info buttons to metrics with click handlers per design spec */}
                   <div className="grid grid-cols-3 gap-2 pt-2">
-                    <div className="text-center p-2 rounded" style={{ backgroundColor: '#C9EBC0' }}>
-                      <div className="text-xs" style={{ color: '#2F4733' }}>Medication</div>
+                    <div className="text-center p-2 rounded relative" style={{ backgroundColor: '#C9EBC0' }}>
+                      <div className="flex items-center justify-center gap-1 text-xs mb-1" style={{ color: '#2F4733' }}>
+                        <span>Medication</span>
+                        <button
+                          onClick={() => {
+                            setShowMetricInfo('medication');
+                            toast({
+                              title: "Medication Tracking",
+                              description: getMetricDefinition('medication'),
+                            });
+                          }}
+                          className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
+                          aria-label="Medication information"
+                        >
+                          <Info className="h-3 w-3" />
+                        </button>
+                      </div>
                       <div className="text-lg">✓</div>
                     </div>
-                    <div className="text-center p-2 rounded" style={{ backgroundColor: '#C9EBC0' }}>
-                      <div className="text-xs" style={{ color: '#2F4733' }}>Activity</div>
+                    <div className="text-center p-2 rounded relative" style={{ backgroundColor: '#C9EBC0' }}>
+                      <div className="flex items-center justify-center gap-1 text-xs mb-1" style={{ color: '#2F4733' }}>
+                        <span>Activity</span>
+                        <button
+                          onClick={() => {
+                            setShowMetricInfo('activity');
+                            toast({
+                              title: "Activity Tracking",
+                              description: getMetricDefinition('activity'),
+                            });
+                          }}
+                          className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
+                          aria-label="Activity information"
+                        >
+                          <Info className="h-3 w-3" />
+                        </button>
+                      </div>
                       <div className="text-lg">✓</div>
                     </div>
-                    <div className="text-center p-2 rounded" style={{ backgroundColor: senior.status === 'alert' ? '#FF8882' : '#C9EBC0' }}>
-                      <div className="text-xs" style={{ color: '#2F4733' }}>Sleep</div>
+                    <div className="text-center p-2 rounded relative" style={{ backgroundColor: senior.status === 'alert' ? '#FF8882' : '#C9EBC0' }}>
+                      <div className="flex items-center justify-center gap-1 text-xs mb-1" style={{ color: '#2F4733' }}>
+                        <span>Sleep</span>
+                        <button
+                          onClick={() => {
+                            setShowMetricInfo('sleep');
+                            toast({
+                              title: "Sleep Tracking",
+                              description: getMetricDefinition('sleep'),
+                            });
+                          }}
+                          className="inline-flex items-center justify-center hover:opacity-70 transition-opacity"
+                          aria-label="Sleep information"
+                        >
+                          <Info className="h-3 w-3" />
+                        </button>
+                      </div>
                       <div className="text-lg">{senior.status === 'alert' ? '⚠' : '✓'}</div>
                     </div>
                   </div>
@@ -254,14 +317,14 @@ const Dashboard = () => {
                 <h2 id="summary-feed-heading" className="text-2xl font-heading font-bold mb-4" style={{ color: '#2F4733' }}>
                   Daily Summary Feed
                 </h2>
+                {/* QA: UI/UX fix 2025-10-15 - Removed green borderLeft lines per design spec */}
                 <div className="space-y-3">
                   {summaryFeed.map((item, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="flex items-center justify-between p-4 rounded-lg"
-                      style={{ 
-                        backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white',
-                        borderLeft: `4px solid ${getStatusColor(item.status)}`
+                      style={{
+                        backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'white'
                       }}
                     >
                       <div className="flex-1">
