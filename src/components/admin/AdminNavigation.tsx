@@ -52,7 +52,7 @@ const navItems: NavItem[] = [
   },
   {
     label: 'Audit Log',
-    href: '/admin/audit',
+    href: '/admin/audit-log',
     icon: Activity,
     description: 'System activity history',
   },

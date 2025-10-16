@@ -8,7 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminUsers, useCreateUser, useUpdateUser } from '@/hooks/admin/useAdminData';
+import { useAdminUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/hooks/admin/useAdminData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,7 @@ import {
   Mail,
   Phone,
   Calendar,
+  Trash2,
 } from 'lucide-react';
 import {
   formatAdminDate,
@@ -498,6 +499,84 @@ const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
 };
 
 /**
+ * Delete User Confirmation Dialog
+ */
+interface DeleteUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: AdminUserProfile | null;
+  onConfirm: () => void;
+  isDeleting: boolean;
+}
+
+const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
+  open,
+  onOpenChange,
+  user,
+  onConfirm,
+  isDeleting,
+}) => {
+  if (!user) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete User</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this user? This action cannot be undone and will permanently
+            delete the user's account and all associated data.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarFallback style={{ backgroundColor: '#C9EBC0', color: '#2F4733' }}>
+                {getInitials(user.full_name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{user.full_name}</p>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <Badge variant={getRoleBadgeVariant(user.role)} className="mt-1">
+                {formatRole(user.role)}
+              </Badge>
+            </div>
+          </div>
+
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            <AlertDescription>
+              This will delete all care relationships, notes, and activity logs associated with this user.
+            </AlertDescription>
+          </Alert>
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete User'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+/**
  * AdminUsers Page Component
  */
 export const AdminUsers: React.FC = () => {
@@ -509,6 +588,7 @@ export const AdminUsers: React.FC = () => {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Debounce search
   const debouncedSearchHandler = useMemo(
@@ -550,6 +630,27 @@ export const AdminUsers: React.FC = () => {
     }
     setDetailsDialogOpen(false);
     setEditDialogOpen(true);
+  };
+
+  const deleteMutation = useDeleteUser(selectedUser?.id || '');
+  const { toast } = useToast();
+
+  const handleDeleteUser = async () => {
+    try {
+      await deleteMutation.mutateAsync();
+      toast({
+        title: 'User deleted',
+        description: 'User has been permanently deleted.',
+      });
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete user',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -668,6 +769,17 @@ export const AdminUsers: React.FC = () => {
                               <Edit className="h-4 w-4" aria-hidden="true" />
                               <span className="sr-only">Edit {user.full_name}</span>
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
+                              <span className="sr-only">Delete {user.full_name}</span>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -712,6 +824,14 @@ export const AdminUsers: React.FC = () => {
       />
 
       <UserDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} mode="create" />
+
+      <DeleteUserDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        user={selectedUser}
+        onConfirm={handleDeleteUser}
+        isDeleting={deleteMutation.isPending}
+      />
     </AdminLayout>
   );
 };

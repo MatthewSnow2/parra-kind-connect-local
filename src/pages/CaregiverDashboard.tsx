@@ -14,7 +14,7 @@
  * Navigate to /caregiver/dashboard to access this page
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,14 +30,21 @@ import { toast } from "sonner";
 import { noteTextSchema } from "@/lib/validation/schemas";
 import { sanitizeText } from "@/lib/validation/sanitization";
 import { checkRateLimit, recordRateLimitedAction, RATE_LIMITS } from "@/lib/validation/rate-limiting";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CaregiverDashboard = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [notes, setNotes] = useState("");
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
-  // Get the first patient that this caregiver has access to
-  // In a full implementation, you would have a patient selector or get this from URL params
+  // Fetch all active care relationships for this caregiver
   const { data: careRelationships, isLoading: relationshipsLoading } = useQuery({
     queryKey: ["care-relationships", user?.id],
     queryFn: async () => {
@@ -45,10 +52,14 @@ const CaregiverDashboard = () => {
 
       const { data, error } = await supabase
         .from("care_relationships")
-        .select("patient_id, relationship_type, status")
+        .select(`
+          patient_id,
+          relationship_type,
+          status,
+          patient:profiles!care_relationships_patient_id_fkey(id, full_name, display_name, email)
+        `)
         .eq("caregiver_id", user.id)
-        .eq("status", "active")
-        .limit(1);
+        .eq("status", "active");
 
       if (error) throw error;
       return data;
@@ -56,7 +67,14 @@ const CaregiverDashboard = () => {
     enabled: !!user?.id,
   });
 
-  const patientId = careRelationships?.[0]?.patient_id;
+  // Set the first patient as selected by default when relationships load
+  React.useEffect(() => {
+    if (careRelationships && careRelationships.length > 0 && !selectedPatientId) {
+      setSelectedPatientId(careRelationships[0].patient_id);
+    }
+  }, [careRelationships, selectedPatientId]);
+
+  const patientId = selectedPatientId || careRelationships?.[0]?.patient_id;
 
   // Fetch patient profile
   const { data: patient, isLoading: patientLoading } = useQuery({
@@ -206,10 +224,35 @@ const CaregiverDashboard = () => {
 
       <main className="flex-1 pt-24 pb-12 px-6">
         <div className="max-w-7xl mx-auto">
-          {/* Page Title */}
-          <h1 className="text-4xl font-heading font-bold text-secondary mb-8">
-            Monitoring {patientName}
-          </h1>
+          {/* Page Title and Senior Selector */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h1 className="text-4xl font-heading font-bold text-secondary">
+                Monitoring {patientName}
+              </h1>
+
+              {/* Senior Selector - only show if caregiver has multiple seniors */}
+              {careRelationships && careRelationships.length > 1 && (
+                <div className="w-full sm:w-64">
+                  <Select value={patientId} onValueChange={setSelectedPatientId}>
+                    <SelectTrigger className="border-secondary">
+                      <SelectValue placeholder="Select a senior" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {careRelationships.map((relationship) => (
+                        <SelectItem key={relationship.patient_id} value={relationship.patient_id}>
+                          {(relationship as any).patient?.display_name ||
+                           (relationship as any).patient?.full_name ||
+                           (relationship as any).patient?.email ||
+                           "Unknown Senior"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Top Grid: Status, Interactions, Mood, Notes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

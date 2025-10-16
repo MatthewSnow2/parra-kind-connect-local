@@ -245,6 +245,27 @@ export function useUpdateUser(id: string) {
 }
 
 /**
+ * Delete User Mutation
+ */
+export function useDeleteUser(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      // Delete user from auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(id);
+      if (authError) throw authError;
+
+      // Profile will be deleted automatically via CASCADE
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.users() });
+      queryClient.invalidateQueries({ queryKey: adminKeys.stats() });
+    },
+  });
+}
+
+/**
  * Care Relationships List Hook
  */
 export function useAdminRelationships(filters: RelationshipFilterOptions = {}) {
@@ -333,6 +354,28 @@ export function useUpdateRelationship(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.relationship(id) });
       queryClient.invalidateQueries({ queryKey: adminKeys.relationships() });
+    },
+  });
+}
+
+/**
+ * Delete Relationship Mutation
+ */
+export function useDeleteRelationship(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('care_relationships')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.relationships() });
+      queryClient.invalidateQueries({ queryKey: adminKeys.stats() });
     },
   });
 }

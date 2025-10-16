@@ -13,6 +13,7 @@ import {
   useAdminUsers,
   useCreateRelationship,
   useUpdateRelationship,
+  useDeleteRelationship,
 } from '@/hooks/admin/useAdminData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,7 @@ import {
   Check,
   X,
   Filter,
+  Trash2,
 } from 'lucide-react';
 import {
   formatAdminDate,
@@ -307,6 +309,74 @@ const RelationshipDialog: React.FC<RelationshipDialogProps> = ({
 };
 
 /**
+ * Delete Confirmation Dialog Component
+ */
+interface DeleteConfirmationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  relationship: AdminCareRelationship | null;
+  onConfirm: () => void;
+  isDeleting: boolean;
+}
+
+const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
+  open,
+  onOpenChange,
+  relationship,
+  onConfirm,
+  isDeleting,
+}) => {
+  if (!relationship) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Care Relationship</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this care relationship? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Patient:</p>
+            <p className="text-sm text-muted-foreground">
+              {relationship.patient?.full_name || 'Unknown'} ({relationship.patient?.email})
+            </p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Caregiver:</p>
+            <p className="text-sm text-muted-foreground">
+              {relationship.caregiver?.full_name || 'Unknown'} ({relationship.caregiver?.email})
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+/**
  * AdminCareRelationships Page Component
  */
 export const AdminCareRelationships: React.FC = () => {
@@ -315,12 +385,14 @@ export const AdminCareRelationships: React.FC = () => {
   const [selectedRelationship, setSelectedRelationship] = useState<AdminCareRelationship | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data: relationships, isLoading, error } = useAdminRelationships({
     status: statusFilter !== 'all' ? (statusFilter as any) : undefined,
   });
 
   const updateMutation = useUpdateRelationship(selectedRelationship?.id || '');
+  const deleteMutation = useDeleteRelationship(selectedRelationship?.id || '');
   const { toast } = useToast();
 
   // Check for create action in URL
@@ -359,6 +431,24 @@ export const AdminCareRelationships: React.FC = () => {
       toast({
         title: 'Error',
         description: 'Failed to reject relationship',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync();
+      toast({
+        title: 'Relationship deleted',
+        description: 'Care relationship has been permanently deleted.',
+      });
+      setDeleteDialogOpen(false);
+      setSelectedRelationship(null);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete relationship',
         variant: 'destructive',
       });
     }
@@ -535,6 +625,17 @@ export const AdminCareRelationships: React.FC = () => {
                               <Edit className="h-4 w-4" aria-hidden="true" />
                               <span className="sr-only">Edit</span>
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRelationship(relationship);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -569,6 +670,14 @@ export const AdminCareRelationships: React.FC = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         mode="create"
+      />
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        relationship={selectedRelationship}
+        onConfirm={handleDelete}
+        isDeleting={deleteMutation.isPending}
       />
     </AdminLayout>
   );
