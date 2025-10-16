@@ -30,10 +30,9 @@ const Navigation = () => {
               width="40"
               height="40"
             />
+            {/* QA: UI/UX fix 2025-10-15 - Removed underline from logo on homepage per user request */}
             <span
-              className={`text-2xl font-heading font-bold transition-all ${
-                isActive ? "text-background border-b-2 border-background" : "text-background"
-              }`}
+              className="text-2xl font-heading font-bold transition-all text-background"
               aria-hidden="false"
             >
               parra
