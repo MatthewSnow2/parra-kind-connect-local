@@ -10,6 +10,7 @@ import HamburgerMenu from "@/components/HamburgerMenu";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import historyImage from "@/assets/history-image.png";
 
 interface HistoryEntry {
   date: string;
@@ -111,12 +112,14 @@ const HistoryView = () => {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Left: Time period selector and date list */}
             <div>
-              {/* QA: UI/UX fix 2025-10-15 - Changed header to "Independent History" and added Export button per design spec */}
-              <div className="flex items-center justify-between mb-8">
-                <h1 className="text-5xl font-heading font-bold text-secondary">
-                  Independent History
-                </h1>
-                <div className="flex items-center gap-4">
+              {/* QA: UI/UX fix 2025-10-15 - Restructured header layout to prevent export button from being covered by image */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="text-5xl font-heading font-bold text-secondary">
+                    Independent History
+                  </h1>
+                </div>
+                <div className="flex items-center justify-between">
                   <div className="flex gap-4 text-2xl font-heading font-bold text-secondary">
                     <button
                       onClick={() => setTimePeriod(7)}
@@ -170,11 +173,12 @@ const HistoryView = () => {
             </div>
 
             {/* Right: Image placeholder */}
+            {/* QA: UI/UX fix 2025-10-15 - Replaced placeholder with uploaded history image per user request */}
             <div className="hidden lg:block">
               <div className="bg-card rounded-3xl overflow-hidden shadow-2xl h-[600px] flex items-center justify-center">
                 <img
-                  src="/placeholder.svg"
-                  alt="Decorative"
+                  src={historyImage}
+                  alt="Two people walking together on a peaceful path, representing companionship and care"
                   className="w-full h-full object-cover opacity-50"
                 />
               </div>
