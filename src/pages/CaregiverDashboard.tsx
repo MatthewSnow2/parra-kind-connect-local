@@ -24,8 +24,9 @@ import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { Button } from "@/components/ui/button";
-import { Mic, Loader2 } from "lucide-react";
+import { Mic, Loader2, MessageCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { openWhatsAppChat, formatSummaryForWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { noteTextSchema } from "@/lib/validation/schemas";
 import { sanitizeText } from "@/lib/validation/sanitization";
@@ -169,6 +170,40 @@ const CaregiverDashboard = () => {
       console.error("Error saving note:", error);
       toast.error("Failed to save note");
     }
+  };
+
+  const handleWhatsAppMessage = () => {
+    if (!patient?.phone_number) {
+      toast.error("Patient phone number not available");
+      return;
+    }
+
+    const message = `Hi ${patientName}, this is your caregiver checking in. How are you feeling today?`;
+    openWhatsAppChat(patient.phone_number, message);
+    toast.success("Opening WhatsApp...");
+  };
+
+  const handleShareSummary = () => {
+    if (!patient?.phone_number) {
+      toast.error("Patient phone number not available");
+      return;
+    }
+
+    if (!todaySummary) {
+      toast.error("No summary available to share");
+      return;
+    }
+
+    const message = formatSummaryForWhatsApp({
+      ...todaySummary,
+      patient: {
+        full_name: patient.full_name,
+        display_name: patient.display_name,
+      },
+    });
+
+    openWhatsAppChat(patient.phone_number, message);
+    toast.success("Opening WhatsApp...");
   };
 
   if (isLoading) {
@@ -329,6 +364,32 @@ const CaregiverDashboard = () => {
             <div className="space-y-2">
               <p className="text-lg text-foreground mt-4">{analysisText}</p>
             </div>
+
+            {/* WhatsApp Quick Actions */}
+            {patient?.phone_number && (
+              <div className="flex flex-wrap gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleWhatsAppMessage}
+                  className="border-secondary text-secondary hover:bg-secondary hover:text-background"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Message via WhatsApp
+                </Button>
+                {todaySummary && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareSummary}
+                    className="border-secondary text-secondary hover:bg-secondary hover:text-background"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Share Summary via WhatsApp
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

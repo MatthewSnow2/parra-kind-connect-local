@@ -6,6 +6,7 @@ import InteractionTimeline from "@/components/InteractionTimeline";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -35,14 +36,20 @@ const HistoryDetailModal = ({ entry, isOpen, onClose, onExport }: HistoryDetailM
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         {/* Header with date and upload icon */}
         <DialogHeader className="flex flex-row items-center justify-between border-b border-secondary pb-4">
-          <DialogTitle className="text-3xl font-heading font-bold text-secondary">
-            {entry.date}
-          </DialogTitle>
+          <div>
+            <DialogTitle className="text-3xl font-heading font-bold text-secondary">
+              {entry.date}
+            </DialogTitle>
+            <DialogDescription>
+              View detailed history including status, mood, interactions, and daily summary
+            </DialogDescription>
+          </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onExport}
             className="w-10 h-10"
+            aria-label="Export history entry"
           >
             <Upload className="w-5 h-5 text-secondary" />
           </Button>

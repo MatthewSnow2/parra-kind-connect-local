@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { createUser, validateUserInput } from '@/lib/admin/createUser';
 import type {
   AdminUserProfile,
   AdminCareRelationship,
@@ -179,38 +180,91 @@ export function useCreateUser() {
 
   return useMutation({
     mutationFn: async (input: CreateUserInput) => {
-      // Create auth user first
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: input.email,
-        email_confirm: true,
-        user_metadata: {
-          full_name: input.full_name,
-          role: input.role,
-        },
-      });
+      // Validate input first
+      const validationErrors = validateUserInput(input);
+      if (validationErrors.length > 0) {
+        throw new Error('Validation failed: ' + validationErrors.join(', '));
+      }
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create user');
+      try {
+        // Use the new createUser service with multiple fallback methods
+        const result = await createUser(input);
 
-      // Create profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: input.email,
-          full_name: input.full_name,
-          display_name: input.display_name || null,
-          role: input.role,
-          phone_number: input.phone_number || null,
-          date_of_birth: input.date_of_birth || null,
-          emergency_contact_name: input.emergency_contact_name || null,
-          emergency_contact_phone: input.emergency_contact_phone || null,
-        })
-        .select()
-        .single();
+        // If we get a profile back, return it
+        if (result?.profile) {
+          return result.profile;
+        }
 
-      if (profileError) throw profileError;
-      return profile;
+        // If we get a user but no profile, try to fetch the profile
+        if (result?.user?.id) {
+          // Wait a moment for the trigger to create the profile
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', result.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Failed to fetch created profile:', profileError);
+            // Return a minimal profile object
+            return {
+              id: result.user.id,
+              email: input.email,
+              full_name: input.full_name,
+              display_name: input.display_name || input.full_name,
+              role: input.role,
+              phone_number: input.phone_number || null,
+              date_of_birth: input.date_of_birth || null,
+              emergency_contact_name: input.emergency_contact_name || null,
+              emergency_contact_phone: input.emergency_contact_phone || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+          }
+
+          return profile;
+        }
+
+        // If result is from database function (profile only, no auth user)
+        if (result?.success && result?.user_id) {
+          return {
+            id: result.user_id,
+            email: input.email,
+            full_name: input.full_name,
+            display_name: input.display_name || input.full_name,
+            role: input.role,
+            phone_number: input.phone_number || null,
+            date_of_birth: input.date_of_birth || null,
+            emergency_contact_name: input.emergency_contact_name || null,
+            emergency_contact_phone: input.emergency_contact_phone || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+        }
+
+        throw new Error('Unexpected response format from user creation');
+      } catch (error: any) {
+        console.error('User creation error:', error);
+
+        // Provide user-friendly error messages
+        if (error?.message?.includes('not allowed') || error?.message?.includes('403')) {
+          throw new Error(
+            'Admin privileges required. Make sure you are logged in as an admin.'
+          );
+        }
+        if (error?.message?.includes('already registered') || error?.message?.includes('already exists')) {
+          throw new Error('A user with this email already exists.');
+        }
+        if (error?.message?.includes('Edge Function')) {
+          throw new Error(
+            'User creation service not available. Please contact support to deploy the admin-create-user Edge Function.'
+          );
+        }
+
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() });
@@ -252,11 +306,55 @@ export function useDeleteUser(id: string) {
 
   return useMutation({
     mutationFn: async () => {
-      // Delete user from auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(id);
-      if (authError) throw authError;
+      try {
+        // First try using Edge Function if available
+        const { data: session } = await supabase.auth.getSession();
 
-      // Profile will be deleted automatically via CASCADE
+        if (session?.session?.access_token) {
+          try {
+            const response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-user`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${session.session.access_token}`,
+                },
+                body: JSON.stringify({ userId: id }),
+              }
+            );
+
+            if (response.ok) {
+              return;
+            }
+          } catch {
+            // Fall through to next method
+          }
+        }
+
+        // Fallback: Delete profile directly (auth user remains)
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          throw error;
+        }
+
+        console.warn(
+          'Profile deleted but auth user may still exist. ' +
+          'Use Supabase dashboard or Edge Function for complete deletion.'
+        );
+      } catch (error: any) {
+        console.error('User deletion error:', error);
+
+        if (error?.message?.includes('not allowed') || error?.code === '42501') {
+          throw new Error('Admin privileges required for user deletion.');
+        }
+
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.users() });

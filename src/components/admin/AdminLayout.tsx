@@ -9,6 +9,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminNavigation } from './AdminNavigation';
+import HamburgerMenu from '@/components/HamburgerMenu';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -105,7 +106,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             </Link>
           </div>
 
-          {/* User Menu */}
+          {/* User Menu and Hamburger */}
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -160,6 +161,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Hamburger Menu for consistent navigation */}
+            <HamburgerMenu />
           </div>
         </div>
       </header>

@@ -46,7 +46,9 @@ import {
   Check,
   X,
   FileText,
+  MessageCircle,
 } from 'lucide-react';
+import { openWhatsAppChat, formatAlertForWhatsApp } from '@/lib/whatsapp';
 import {
   formatAdminDate,
   formatDateTime,
@@ -213,7 +215,20 @@ const AlertDetailsDialog: React.FC<AlertDetailsDialogProps> = ({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          {alert.patient && (alert.patient as any).phone_number && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const message = formatAlertForWhatsApp(alert);
+                openWhatsAppChat((alert.patient as any).phone_number, message);
+              }}
+              className="gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Share via WhatsApp
+            </Button>
+          )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
@@ -412,17 +427,34 @@ export const AdminAlerts: React.FC = () => {
                           {formatAdminDate(alert.created_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDetails(alert);
-                            }}
-                          >
-                            <FileText className="h-4 w-4" aria-hidden="true" />
-                            <span className="sr-only">View details</span>
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDetails(alert);
+                              }}
+                            >
+                              <FileText className="h-4 w-4" aria-hidden="true" />
+                              <span className="sr-only">View details</span>
+                            </Button>
+                            {alert.patient && (alert.patient as any).phone_number && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const message = formatAlertForWhatsApp(alert);
+                                  openWhatsAppChat((alert.patient as any).phone_number, message);
+                                }}
+                                title="Share via WhatsApp"
+                              >
+                                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                                <span className="sr-only">Share via WhatsApp</span>
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

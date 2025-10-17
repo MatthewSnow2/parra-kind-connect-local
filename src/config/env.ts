@@ -38,6 +38,15 @@ const envSchema = z.object({
     .min(20, 'Supabase publishable key appears to be invalid')
     .regex(/^eyJ/, 'Supabase key should be a valid JWT token')
     .describe('Supabase anonymous/public key (safe for client-side use)'),
+
+  // Optional: Service role key for admin operations
+  // WARNING: Never expose this to the frontend in production!
+  VITE_SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .min(20, 'Supabase service role key appears to be invalid')
+    .regex(/^eyJ/, 'Supabase service role key should be a valid JWT token')
+    .describe('Supabase service role key (ONLY for admin operations - keep secret!)')
+    .optional(),
 });
 
 /**
@@ -59,6 +68,7 @@ export const env = (() => {
       VITE_SUPABASE_PROJECT_ID: import.meta.env.VITE_SUPABASE_PROJECT_ID,
       VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
       VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      VITE_SUPABASE_SERVICE_ROLE_KEY: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY,
     });
 
     return parsed;
