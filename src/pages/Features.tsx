@@ -8,7 +8,9 @@ const Features = () => {
     {
       icon: Shield,
       title: "Fall Detection",
-      description: "AI detects possible falls based on phone motion and inactivity patterns."
+      description: "AI detects possible falls based on phone motion and inactivity patterns.",
+      comingSoon: true,
+      comingSoonSubtext: "With smart device integration made possible by Terra"
     },
     {
       icon: MessageSquare,
@@ -60,7 +62,7 @@ const Features = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card 
+              <Card
                 key={index}
                 className="p-8 hover:shadow-lg transition-all duration-300 animate-fade-in"
                 style={{ animationDelay: `${index * 0.05}s` }}
@@ -70,10 +72,20 @@ const Features = () => {
                 </div>
                 <h3 className="text-xl font-heading font-bold mb-3 text-foreground">
                   {feature.title}
+                  {feature.comingSoon && (
+                    <span className="ml-2 text-sm font-medium" style={{ color: '#FF0000' }}>
+                      Coming Soon
+                    </span>
+                  )}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
+                {feature.comingSoonSubtext && (
+                  <p className="text-sm text-muted-foreground/70 mt-3 italic">
+                    {feature.comingSoonSubtext}
+                  </p>
+                )}
               </Card>
             ))}
           </div>
