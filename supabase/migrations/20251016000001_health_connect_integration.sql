@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.health_metrics (
 
   -- Time information
   recorded_at TIMESTAMPTZ NOT NULL,
-  recorded_date DATE NOT NULL GENERATED ALWAYS AS (DATE(recorded_at)) STORED,
+  recorded_date DATE NOT NULL GENERATED ALWAYS AS ((recorded_at AT TIME ZONE 'UTC')::DATE) STORED,
 
   -- Value storage (flexible JSON for different metric types)
   value_numeric DECIMAL(10,2),           -- For single numeric values (heart rate, weight, etc.)
