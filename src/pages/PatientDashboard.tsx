@@ -8,8 +8,9 @@ import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { Button } from "@/components/ui/button";
-import { Mic, Loader2 } from "lucide-react";
+import { Mic, Loader2, Clock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -42,8 +43,33 @@ const PatientDashboard = () => {
     enabled: !!patientId,
   });
 
+  // Fetch caregiver notes shared with patient
+  const { data: caregiverNotes, isLoading: notesLoading } = useQuery({
+    queryKey: ["caregiver-notes", patientId],
+    queryFn: async () => {
+      if (!patientId) return [];
 
-  const isLoading = summaryLoading;
+      const { data, error } = await supabase
+        .from("caregiver_notes")
+        .select(`
+          id,
+          note_text,
+          note_type,
+          created_at,
+          caregiver:profiles!caregiver_notes_caregiver_id_fkey(full_name, display_name)
+        `)
+        .eq("patient_id", patientId)
+        .eq("shared_with_patient", true)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!patientId,
+  });
+
+  const isLoading = summaryLoading || notesLoading;
 
   const patientName = patient?.display_name || patient?.full_name || "Patient";
   const status: "ok" | "warning" | "alert" = todaySummary?.overall_status || "ok";
@@ -114,22 +140,40 @@ const PatientDashboard = () => {
                 <MoodIndicator mood={mood} size="lg" />
               </div>
 
-              {/* Notes Section */}
+              {/* Notes from Caregiver Section */}
               <div>
                 <h2 className="text-2xl font-heading font-bold text-secondary mb-4">
-                  Notes
+                  Notes from Your Caregiver
                 </h2>
-                <div className="relative">
-                  <div className="absolute top-3 left-3 text-secondary">
-                    <Mic className="w-6 h-6" />
+                {caregiverNotes && caregiverNotes.length > 0 ? (
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                    {caregiverNotes.map((note: any) => (
+                      <Card key={note.id} className="p-4 border-l-4 border-primary">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <span className="text-sm font-medium text-secondary">
+                            {(note.caregiver as any)?.display_name || (note.caregiver as any)?.full_name || "Your Caregiver"}
+                          </span>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            {new Date(note.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <p className="text-base text-foreground">{note.note_text}</p>
+                        {note.note_type !== 'general' && (
+                          <span className="inline-block mt-2 px-2 py-1 text-xs bg-primary/10 text-primary rounded">
+                            {note.note_type}
+                          </span>
+                        )}
+                      </Card>
+                    ))}
                   </div>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add your notes here..."
-                    className="pl-12 min-h-[120px] text-lg border-2 border-secondary/30 focus:border-secondary"
-                  />
-                </div>
+                ) : (
+                  <div className="p-6 text-center border-2 border-dashed border-secondary/30 rounded-lg">
+                    <p className="text-muted-foreground">
+                      No notes from your caregiver yet.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

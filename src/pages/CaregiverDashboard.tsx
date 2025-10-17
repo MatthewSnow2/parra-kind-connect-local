@@ -24,8 +24,9 @@ import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
 import HamburgerMenu from "@/components/HamburgerMenu";
 import { Button } from "@/components/ui/button";
-import { Mic, Loader2, MessageCircle } from "lucide-react";
+import { Mic, Loader2, MessageCircle, Clock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { openWhatsAppChat, formatSummaryForWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { noteTextSchema } from "@/lib/validation/schemas";
@@ -115,6 +116,26 @@ const CaregiverDashboard = () => {
     enabled: !!patientId,
   });
 
+  // Fetch recent notes for this patient
+  const { data: recentNotes, isLoading: notesLoading, refetch: refetchNotes } = useQuery({
+    queryKey: ["caregiver-recent-notes", patientId, user?.id],
+    queryFn: async () => {
+      if (!patientId || !user?.id) return [];
+
+      const { data, error } = await supabase
+        .from("caregiver_notes")
+        .select("*")
+        .eq("patient_id", patientId)
+        .eq("caregiver_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!patientId && !!user?.id,
+  });
+
   const isLoading = relationshipsLoading || patientLoading || summaryLoading;
 
   const patientName = patient?.display_name || patient?.full_name || "Patient";
@@ -166,6 +187,7 @@ const CaregiverDashboard = () => {
 
       toast.success("Note saved successfully");
       setNotes("");
+      refetchNotes(); // Refresh the notes list
     } catch (error) {
       console.error("Error saving note:", error);
       toast.error("Failed to save note");
@@ -350,6 +372,31 @@ const CaregiverDashboard = () => {
                       Save Note
                     </Button>
                   </div>
+
+                  {/* Recent Notes List */}
+                  {recentNotes && recentNotes.length > 0 && (
+                    <div className="mt-6 space-y-2">
+                      <h3 className="text-lg font-semibold text-secondary">Recent Notes:</h3>
+                      <div className="space-y-2">
+                        {recentNotes.map((note: any) => (
+                          <Card key={note.id} className="p-3 border-l-4 border-primary/50">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(note.created_at).toLocaleString()}
+                              </span>
+                              {note.shared_with_patient && (
+                                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                  Shared
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-foreground">{note.note_text}</p>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

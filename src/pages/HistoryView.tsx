@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import StatusIndicator from "@/components/StatusIndicator";
 import InteractionTimeline from "@/components/InteractionTimeline";
 import MoodIndicator from "@/components/MoodIndicator";
@@ -27,27 +28,31 @@ const HistoryView = () => {
   const view = searchParams.get("view") || "list"; // 'list' or 'detail'
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [timePeriod, setTimePeriod] = useState<7 | 14 | 30>(7);
+  const { user } = useAuth();
 
-  // For now, use test patient ID - in production this would come from auth
-  const testPatientId = "11111111-1111-1111-1111-111111111111";
+  // Use the authenticated user's ID as the patient ID
+  const patientId = user?.id;
 
   // Fetch daily summaries
   const { data: summaries, isLoading } = useQuery({
-    queryKey: ["daily-summaries", testPatientId, timePeriod],
+    queryKey: ["daily-summaries", patientId, timePeriod],
     queryFn: async () => {
+      if (!patientId) return [];
+
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - timePeriod);
 
       const { data, error } = await supabase
         .from("daily_summaries")
         .select("*")
-        .eq("patient_id", testPatientId)
+        .eq("patient_id", patientId)
         .gte("summary_date", startDate.toISOString().split('T')[0])
         .order("summary_date", { ascending: false });
 
       if (error) throw error;
       return data;
     },
+    enabled: !!patientId,
   });
 
   const historyData: HistoryEntry[] = summaries?.map(summary => ({
