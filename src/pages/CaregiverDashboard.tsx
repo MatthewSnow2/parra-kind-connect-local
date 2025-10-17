@@ -411,33 +411,33 @@ const CaregiverDashboard = () => {
             <div className="space-y-2">
               <p className="text-lg text-foreground mt-4">{analysisText}</p>
             </div>
+          </div>
 
-            {/* WhatsApp Quick Actions */}
-            {patient?.phone_number && (
-              <div className="flex flex-wrap gap-3 mt-6">
+          {/* WhatsApp Quick Actions - Always visible when phone number available */}
+          {patient?.phone_number && (
+            <div className="flex flex-wrap gap-3 mb-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleWhatsAppMessage}
+                className="border-secondary text-secondary hover:bg-secondary hover:text-background"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Message via WhatsApp
+              </Button>
+              {todaySummary && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleWhatsAppMessage}
+                  onClick={handleShareSummary}
                   className="border-secondary text-secondary hover:bg-secondary hover:text-background"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Message via WhatsApp
+                  Share Summary via WhatsApp
                 </Button>
-                {todaySummary && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleShareSummary}
-                    className="border-secondary text-secondary hover:bg-secondary hover:text-background"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Share Summary via WhatsApp
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
