@@ -9,8 +9,9 @@ const Features = () => {
       icon: Shield,
       title: "Fall Detection",
       description: "AI detects possible falls based on phone motion and inactivity patterns.",
-      comingSoon: true,
-      comingSoonSubtext: "With smart device integration made possible by Terra"
+      comingSoon: false,
+      comingSoonSubtext: "With smart device integration made possible by Terra",
+      comingSoonAfterSubtext: true
     },
     {
       icon: MessageSquare,
@@ -84,6 +85,11 @@ const Features = () => {
                 {feature.comingSoonSubtext && (
                   <p className="text-sm text-muted-foreground/70 mt-3 italic">
                     {feature.comingSoonSubtext}
+                    {feature.comingSoonAfterSubtext && (
+                      <span className="ml-2 text-sm font-medium not-italic" style={{ color: '#FF0000' }}>
+                        - Coming Soon
+                      </span>
+                    )}
                   </p>
                 )}
               </Card>
