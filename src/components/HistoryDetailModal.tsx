@@ -21,15 +21,32 @@ interface HistoryEntry {
   concerns?: string[];
 }
 
+interface Alert {
+  id: string;
+  alert_type: string;
+  severity: string;
+  status: string;
+  alert_message: string;
+  created_at: string;
+  resolved_at?: string;
+}
+
 interface HistoryDetailModalProps {
   entry: HistoryEntry | null;
   isOpen: boolean;
   onClose: () => void;
   onExport: () => void;
+  alerts: Alert[];
 }
 
-const HistoryDetailModal = ({ entry, isOpen, onClose, onExport }: HistoryDetailModalProps) => {
+const HistoryDetailModal = ({ entry, isOpen, onClose, onExport, alerts }: HistoryDetailModalProps) => {
   if (!entry) return null;
+
+  // Filter alerts for the selected date
+  const dateAlerts = alerts?.filter(alert => {
+    const alertDate = new Date(alert.created_at).toLocaleDateString();
+    return alertDate === entry.date;
+  }) || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -167,6 +184,52 @@ const HistoryDetailModal = ({ entry, isOpen, onClose, onExport }: HistoryDetailM
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* Fall Detection Alerts */}
+            {dateAlerts.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-lg font-heading font-bold text-yellow-600 mb-3">
+                  Fall Detection Events
+                </h4>
+                <div className="space-y-3">
+                  {dateAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded"
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-yellow-600 font-semibold">⚠️</span>
+                          <span className="font-medium text-sm">Fall Detection Alert</span>
+                        </div>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            alert.status === "resolved"
+                              ? "bg-green-100 text-green-800"
+                              : alert.status === "active"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {alert.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground ml-6">
+                        {alert.alert_message}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2 ml-6">
+                        {new Date(alert.created_at).toLocaleTimeString()}
+                        {alert.resolved_at && (
+                          <span className="text-green-600 ml-2">
+                            → Resolved at {new Date(alert.resolved_at).toLocaleTimeString()}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

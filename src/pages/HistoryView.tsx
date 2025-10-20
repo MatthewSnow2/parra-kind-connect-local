@@ -55,6 +55,29 @@ const HistoryView = () => {
     enabled: !!patientId,
   });
 
+  // Fetch fall detection alerts
+  const { data: alerts } = useQuery({
+    queryKey: ["alerts", patientId, timePeriod],
+    queryFn: async () => {
+      if (!patientId) return [];
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - timePeriod);
+
+      const { data, error } = await supabase
+        .from("alerts")
+        .select("*")
+        .eq("patient_id", patientId)
+        .eq("alert_type", "prolonged_inactivity")
+        .gte("created_at", startDate.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!patientId,
+  });
+
   const historyData: HistoryEntry[] = summaries?.map(summary => ({
     date: new Date(summary.summary_date).toLocaleDateString(),
     status: summary.overall_status,
@@ -198,6 +221,7 @@ const HistoryView = () => {
           isOpen={!!selectedDate}
           onClose={() => setSelectedDate(null)}
           onExport={handleExport}
+          alerts={alerts || []}
         />
       </main>
     </div>
