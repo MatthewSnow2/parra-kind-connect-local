@@ -1,0 +1,222 @@
+{
+  "name": "Para Fall Detection Alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "para-fall-alerts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        300
+      ],
+      "id": "webhook-fall-alerts",
+      "name": "Webhook - Fall Alerts",
+      "webhookId": "GENERATE_NEW_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.body.alertType }}",
+              "rightValue": "motion_inactivity_detected",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        300
+      ],
+      "id": "check-alert-type",
+      "name": "Check Alert Type"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "REPLACE_WITH_YOUR_EVOLUTION_INSTANCE_NAME",
+        "remoteJid": "={{ $json.body.patientPhone }}@s.whatsapp.net",
+        "messageText": "={{ $json.body.message }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api-english.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        680,
+        200
+      ],
+      "id": "send-check-in",
+      "name": "Send Check-In to Patient",
+      "credentials": {
+        "evolutionApi": {
+          "id": "REPLACE_WITH_EVOLUTION_API_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-2",
+              "leftValue": "={{ $json.body.alertType }}",
+              "rightValue": "fall_escalation_required",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        500
+      ],
+      "id": "check-escalation",
+      "name": "Check Escalation"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "REPLACE_WITH_YOUR_EVOLUTION_INSTANCE_NAME",
+        "remoteJid": "={{ $json.body.caregiverPhone }}@s.whatsapp.net",
+        "messageText": "={{ $json.body.message }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api-english.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        680,
+        500
+      ],
+      "id": "send-escalation",
+      "name": "Send Escalation to Caregiver",
+      "credentials": {
+        "evolutionApi": {
+          "id": "REPLACE_WITH_EVOLUTION_API_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Alert processed\", \"alertId\": $json.body.alertId } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        300
+      ],
+      "id": "respond-success",
+      "name": "Respond Success"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Fall Alerts": {
+      "main": [
+        [
+          {
+            "node": "Check Alert Type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Alert Type": {
+      "main": [
+        [
+          {
+            "node": "Send Check-In to Patient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Escalation": {
+      "main": [
+        [
+          {
+            "node": "Send Escalation to Caregiver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Check-In to Patient": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Escalation to Caregiver": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "NEW_VERSION_ID",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "NEW_WORKFLOW_ID",
+  "tags": []
+}

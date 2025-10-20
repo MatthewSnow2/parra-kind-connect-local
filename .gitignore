@@ -47,3 +47,47 @@ m2ai_*.md
 # File uploads and temporary assets
 File_uploads_*/
 uploads_temp/
+
+# Supabase temp files
+supabase/.temp/
+
+# Development and testing files (not committed)
+dev/
+test-*.sh
+test-*.html
+*-test.html
+test-*.js
+check-*.sql
+check-*.js
+verify-*.sql
+verify-*.js
+register-*.sql
+register-*.js
+fix-*.sql
+fix-*.js
+setup-*.sql
+delete-*.sql
+delete-*.js
+analyze*.js
+apply-*.sql
+show*.js
+get*.js
+list*.js
+debug-*.sql
+
+# Temporary documentation (keep in dev/)
+*_SUMMARY.md
+*_REPORT.md
+*_INSTRUCTIONS.md
+ALERTS_TABLE*.md
+CIRCULAR*.md
+CONSTRAINT*.md
+DELETE*.md
+FALL*.md
+FINAL*.md
+FIX*.sql
+READY*.md
+QUICK*.md
+SCHEMA*.md
+ANALYZE*.sql
+COMPLETE*.sql

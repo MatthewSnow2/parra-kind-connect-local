@@ -1,0 +1,8 @@
+{
+  "schedule": "*/1 * * * *",
+  "method": "POST",
+  "headers": {
+    "Authorization": "Bearer 50b5568388d40e312b25124df1cfbd6fe119d1d2dc75296e4323706e1df5cb24"
+  },
+  "body": {}
+}
