@@ -91,3 +91,6 @@ QUICK*.md
 SCHEMA*.md
 ANALYZE*.sql
 COMPLETE*.sql
+
+# Local Netlify folder
+.netlify
