@@ -140,15 +140,7 @@ const HistoryDetailModal = ({ entry, isOpen, onClose, onExport, alerts }: Histor
               Summary
             </h3>
             <div className="space-y-2">
-              {/* Decorative lines representing summary text */}
-              <div className="h-1 bg-muted rounded-full" />
-              <div className="h-1 bg-muted rounded-full" />
-              <div className="h-1 bg-muted rounded-full w-4/5" />
-              <div className="h-1 bg-muted rounded-full" />
-              <div className="h-1 bg-muted rounded-full w-3/4" />
-              <div className="h-1 bg-muted rounded-full" />
-
-              <p className="text-base text-foreground pt-4 leading-relaxed">
+              <p className="text-base text-foreground leading-relaxed">
                 {entry.summary}
               </p>
             </div>
